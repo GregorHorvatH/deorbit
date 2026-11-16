@@ -13,6 +13,7 @@ const all: Array<[string, () => Float32Array, number]> = [
   ['burn', synth.burn, 0.9],
   ['pop', synth.pop, 0.2],
   ['drone', synth.drone, 8],
+  ['music', synth.music, 32],
 ]
 
 describe('synthesised sounds', () => {
@@ -46,6 +47,39 @@ describe('synthesised sounds', () => {
     const d = synth.drone()
     const step = Math.abs(d[1] - d[0]) // a typical sample-to-sample step inside the hum
     expect(Math.abs(d[0] - d[d.length - 1])).toBeLessThan(Math.max(step * 3, 0.02))
+  })
+
+  test('the music loops without a click and never goes quiet or jumps', () => {
+    const m = synth.music()
+    let maxStep = 0
+    for (let i = 1; i < m.length; i++) maxStep = Math.max(maxStep, Math.abs(m[i] - m[i - 1]))
+    expect(maxStep).toBeLessThan(0.2) // no click anywhere (a pluck's 6 ms attack steps up to ~0.12; a click would be 0.5+)
+    expect(Math.abs(m[0] - m[m.length - 1])).toBeLessThan(0.05) // the end continues into the start
+    const eight = 8 * RATE
+    for (let c = 0; c < 4; c++) expect(rms(m, c * eight, (c + 1) * eight)).toBeGreaterThan(0.05) // no silent chord
+  })
+
+  test('the music follows its chords: the pedal note of each chord is the strongest bass', () => {
+    const m = synth.music()
+    // Goertzel: the energy of one frequency in a window
+    const energy = (from: number, to: number, f: number): number => {
+      const w = (2 * Math.PI * f) / RATE
+      let re = 0
+      let im = 0
+      for (let i = from; i < to; i++) {
+        re += m[i] * Math.cos(w * i)
+        im += m[i] * Math.sin(w * i)
+      }
+      return re * re + im * im
+    }
+    const roots = [55, 43.65, 65.41, 49] // A1, F1, C2, G1
+    roots.forEach((root, c) => {
+      const from = (c * 8 + 3) * RATE
+      const to = (c * 8 + 7) * RATE
+      roots.forEach((other, o) => {
+        if (o !== c) expect(energy(from, to, root)).toBeGreaterThan(energy(from, to, other))
+      })
+    })
   })
 
   test('WAV container: header, size, rate, 16-bit mono', () => {

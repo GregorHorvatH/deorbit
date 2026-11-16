@@ -39,7 +39,7 @@ export function TouchControls() {
     window.addEventListener('touchstart', on, { once: true, passive: true })
     return () => window.removeEventListener('touchstart', on)
   }, [touch])
-  const sound = useSettings((s) => s.ambient || s.sfx)
+  const sound = useSettings((s) => s.ambient || s.music || s.sfx)
   const { setAllSound, togglePanel } = useSettings.getState()
   if (!touch) return null
   return (

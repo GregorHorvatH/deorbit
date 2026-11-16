@@ -44,7 +44,7 @@ export function bindInput(): () => void {
       useSettings.getState().togglePanel()
     } else if (e.code === 'KeyM' && !e.repeat) {
       const st = useSettings.getState()
-      st.setAllSound(!(st.ambient || st.sfx)) // any sound on -> all off; all off -> all on
+      st.setAllSound(!(st.ambient || st.music || st.sfx)) // any sound on -> all off; all off -> all on
     }
   }
   const up = (e: KeyboardEvent): void => void held.delete(e.code)

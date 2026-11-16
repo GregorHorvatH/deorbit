@@ -1,4 +1,4 @@
-# Deorbit 1.0
+# Deorbit
 
 ![Deorbit: a turtle on its orbit around the Earth, the ISS ringed in orange, satellites with trails, clouds from real weather](docs/screenshot.jpg)
 
@@ -9,7 +9,7 @@ simply get harder until the ISS reaches 95% of the turtle's speed.
 Built with TypeScript, Vite, React Three Fiber (Three.js), zustand and Howler. The ground (continents, lakes, rivers, deserts,
 ice) is painted in code at start-up from vector data (Natural Earth), and the city lights are derived from the same data;
 the clouds are computed per pixel in a shader and shaped by real weather from Open-Meteo. The only image is a 740 kB relief
-map (NOAA ETOPO). There are no audio files: every sound is synthesised.
+map (NOAA ETOPO). There are no audio files: every sound and the music are synthesised.
 
 ## Run
 
@@ -30,7 +30,7 @@ Needs Node 22+ (developed on Node 24) and pnpm. `.npmrc` pins the public npm reg
 | `↑` `↓` | raise / lower the orbit by one altitude level (7 levels) |
 | `F` / `F11` | fullscreen |
 | `H` | hide / show the side panel (layers, FPS) |
-| `M` | mute / unmute all sound (the panel has separate switches for the background sound and for the other sounds; remembered) |
+| `M` | mute / unmute all sound (the panel has separate switches for the background sound, the music and the other sounds; remembered) |
 | touch | four on-screen buttons, plus panel / sound / fullscreen buttons |
 
 **One press is one step.** Holding a key (or a finger) repeats nothing, so a value never runs away from you. The
@@ -43,7 +43,7 @@ will do before you press it. The side panel lists what every column means.
 src/sim/      pure TypeScript game logic - no three.js, no React (a lint rule keeps it that way)
 src/render/   React Three Fiber components, shaders, the texture painters; data/ and assets/ are generated (see below)
 src/ui/       the HUD, the side panel, touch buttons (plain DOM)
-src/audio/    procedural sound synthesis + the Howler wrapper
+src/audio/    procedural sound and music synthesis + the Howler wrapper
 src/state/    the live simulation and its fixed-step clock, zustand stores (HUD snapshot, settings), auto-quality, the weather loader
 tests/        vitest
 scripts/      build_terrain.py, build_relief.py (map data generators, see below); gen_golden.py (how the test references were made)
@@ -65,6 +65,10 @@ docs/         the screenshot
   a little faster than the Earth turns. When a new map arrives the clouds **morph** into it over 40 seconds: they grow,
   shrink and dissolve where they are, instead of being redrawn. Clouds are dense, and the city lights under a cloud are
   hidden (found along the line of sight, since the clouds float above the lights).
+- **Music** is an original 32-second loop in the spirit of a big, slow space score (not a copy of any existing piece):
+  a swelling organ pad over a deep pedal bass, a rolling ostinato of soft plucks, one long high line per chord and a long
+  echoing hall, over four chords (Am9, Fmaj9, Cadd9, Gsus2). It is computed in code (about a quarter of a second, a
+  moment after the first key press) and fades in over 4 seconds. Its own checkbox, `M` mutes it with everything else.
 - **Bloom** is selective: only the fireball, the ring flashes and the city lights are drawn into a small glow target;
   the Earth and the clouds act as black occluders in that pass.
 - **Auto quality** watches the median frame time and drops detail one level at a time. Level 1 (reduced): no bloom, no cloud
@@ -82,7 +86,7 @@ the expected values.
 
 Random choices (the next ISS orbit, the stars) are tested by their properties, and the 10 satellite orbits are fixed data.
 The rest of the tests cover the speed system and levels, the HUD numbers, the layout, the day/night curve, the automatic
-quality, the synthesised sounds, the map data (seas are water, deserts are deserts, lights follow the coasts and rivers),
+quality, the synthesised sounds and the music (loop seam, chords), the map data (seas are water, deserts are deserts, lights follow the coasts and rivers),
 the relief map (decoded and checked against the Himalaya and the Mariana Trench), the cloud geometry against the real scene
 graph, and the weather schedule with a fake network (a rate limit, being offline, a hidden tab, a reload within the hour).
 
@@ -148,7 +152,7 @@ painted at start-up).
 ## Known limits
 
 - Tested in desktop Chrome (about 100 FPS at full quality on one real GPU), on a software renderer and in a phone
-  emulation. Not tried on a real phone or in Safari; the sounds are synthesised and have not been tuned by ear.
+  emulation. Not tried on a real phone or in Safari; the sounds and the music are synthesised and have not been tuned by ear.
 - The hill shading is lit from the north-west (the cartographic convention), while the day/night light comes from the right.
 - The relief map has a 0.25 degree grid (~28 km): fine for a globe, soft if you zoom a long way in. The live weather is a
   15 degree grid (~1 600 km): it decides where the clouds are, and the shader invents the fine structure, so real fronts

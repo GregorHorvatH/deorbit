@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { setAmbientEnabled, setSfxEnabled } from '../audio/audio'
+import { setAmbientEnabled, setMusicEnabled, setSfxEnabled } from '../audio/audio'
 import { nightLayer } from '../render/style'
 import type { WeatherStatus } from './weatherLoader'
 import { world } from './world'
@@ -31,8 +31,9 @@ interface Settings {
   quality: number
   panelVisible: boolean
   fps: number
-  /** the background hum, and every other sound (both remembered between visits) */
+  /** the background hum, the music, and every other sound (all remembered between visits) */
   ambient: boolean
+  music: boolean
   sfx: boolean
   /** real cloud cover from Open-Meteo (remembered); off = the climate guess, and no network request at all */
   liveWeather: boolean
@@ -40,6 +41,7 @@ interface Settings {
   /** what the clouds are drawn from right now */
   weather: WeatherStatus
   setAmbient: (on: boolean) => void
+  setMusic: (on: boolean) => void
   setSfx: (on: boolean) => void
   /** both at once: the M key and the touch button */
   setAllSound: (on: boolean) => void
@@ -50,6 +52,7 @@ interface Settings {
 
 const AMBIENT_KEY = 'deorbit.ambient'
 const SFX_KEY = 'deorbit.sfx'
+const MUSIC_KEY = 'deorbit.music'
 const WEATHER_KEY = 'deorbit.liveWeather'
 
 function load(key: string): boolean {
@@ -81,10 +84,15 @@ export const useSettings = create<Settings>((set) => ({
   },
   weather: { source: 'climate', time: '' },
   ambient: load(AMBIENT_KEY),
+  music: load(MUSIC_KEY),
   sfx: load(SFX_KEY),
   setAmbient: (on) => {
     save(AMBIENT_KEY, on)
     set({ ambient: on })
+  },
+  setMusic: (on) => {
+    save(MUSIC_KEY, on)
+    set({ music: on })
   },
   setSfx: (on) => {
     save(SFX_KEY, on)
@@ -92,8 +100,9 @@ export const useSettings = create<Settings>((set) => ({
   },
   setAllSound: (on) => {
     save(AMBIENT_KEY, on)
+    save(MUSIC_KEY, on)
     save(SFX_KEY, on)
-    set({ ambient: on, sfx: on })
+    set({ ambient: on, music: on, sfx: on })
   },
   setLayer: (key, on) => set((s) => ({ layers: { ...s.layers, [key]: on } })),
   setAutoQuality: (on) => set({ autoQuality: on, ...(on ? {} : { quality: 0 }) }), // switched off = full graphics again
@@ -113,12 +122,14 @@ function sync(layers: Record<LayerKey, boolean>): void {
 sync(useSettings.getState().layers)
 useSettings.subscribe((s) => sync(s.layers))
 
-let sound = { ambient: useSettings.getState().ambient, sfx: useSettings.getState().sfx }
+let sound = { ambient: useSettings.getState().ambient, music: useSettings.getState().music, sfx: useSettings.getState().sfx }
 setAmbientEnabled(sound.ambient)
+setMusicEnabled(sound.music)
 setSfxEnabled(sound.sfx)
 useSettings.subscribe((s) => {
   // the store changes twice a second (the FPS counter): only react to a real change of a sound switch
   if (s.ambient !== sound.ambient) setAmbientEnabled(s.ambient)
+  if (s.music !== sound.music) setMusicEnabled(s.music)
   if (s.sfx !== sound.sfx) setSfxEnabled(s.sfx)
-  sound = { ambient: s.ambient, sfx: s.sfx }
+  sound = { ambient: s.ambient, music: s.music, sfx: s.sfx }
 })

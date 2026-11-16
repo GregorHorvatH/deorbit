@@ -19,30 +19,51 @@ const SOURCES: Record<SoundName, () => Float32Array> = {
 }
 const VOLUME: Partial<Record<SoundName, number>> = { burn: 0.8, tickL: 0.6, tickR: 0.6, tickU: 0.6, tickD: 0.6 }
 const AMBIENT_VOLUME = 0.12
+const MUSIC_VOLUME = 0.4
+const MUSIC_FADE_MS = 4000
+
+/** A looping sound that must exist at most ONCE (Howler starts a new instance on every play() without an id). */
+interface Loop {
+  howl: Howl | null
+  id: number | null
+  wanted: boolean
+  volume: number
+  fadeMs: number
+}
+const loop = (volume: number, fadeMs = 0): Loop => ({ howl: null, id: null, wanted: true, volume, fadeMs })
 
 const state = {
   started: false,
-  /** the background hum */
-  ambientOn: true,
   /** every other sound: steering ticks, catches, hits, burns */
   sfxOn: true,
   sounds: new Map<SoundName, Howl>(),
-  ambient: null as Howl | null,
-  /** the ONE playing instance of the hum (Howler starts a new instance on every play() without an id) */
-  ambientId: null as number | null,
+  /** the background hum and the music */
+  ambient: loop(AMBIENT_VOLUME),
+  music: loop(MUSIC_VOLUME, MUSIC_FADE_MS),
 }
+
+const instances = (l: Loop): number => {
+  const sounds = (l.howl as unknown as { _sounds?: Array<{ _paused: boolean; _ended: boolean }> } | null)?._sounds ?? []
+  return sounds.filter((x) => !x._paused && !x._ended).length
+}
+
 /** What has been played (for the tests and the dev console). */
 export const audioStats = {
   started: false,
   played: {} as Partial<Record<SoundName, number>>,
-  /** whether the background hum is playing right now */
+  /** whether the background hum / the music is playing right now */
   get ambientPlaying(): boolean {
-    return state.ambient?.playing() ?? false
+    return state.ambient.howl?.playing() ?? false
   },
-  /** how many copies of the hum are sounding (must never be more than one) */
+  get musicPlaying(): boolean {
+    return state.music.howl?.playing() ?? false
+  },
+  /** how many copies are sounding (must never be more than one) */
   get ambientInstances(): number {
-    const sounds = (state.ambient as unknown as { _sounds?: Array<{ _paused: boolean; _ended: boolean }> } | null)?._sounds ?? []
-    return sounds.filter((x) => !x._paused && !x._ended).length
+    return instances(state.ambient)
+  },
+  get musicInstances(): number {
+    return instances(state.music)
   },
 }
 
@@ -53,7 +74,8 @@ const toHowl = (samples: Float32Array, opts: Partial<HowlOptions> = {}): Howl =>
     ...opts,
   })
 
-/** Call from a user gesture (a key press or a tap): builds the sounds and starts the background hum. Safe to call often. */
+/** Call from a user gesture (a key press or a tap): builds the sounds and starts the background hum and the music.
+ *  Safe to call often. The music (half a second of number crunching) is built a moment later, so the first key is not delayed. */
 export function startAudio(): void {
   if (state.started) return
   state.started = audioStats.started = true
@@ -61,32 +83,48 @@ export function startAudio(): void {
   for (const name of Object.keys(SOURCES) as SoundName[]) {
     state.sounds.set(name, toHowl(SOURCES[name](), { volume: VOLUME[name] ?? 1 }))
   }
-  state.ambient = toHowl(synth.drone(), { loop: true, volume: AMBIENT_VOLUME })
-  syncAmbient()
-  document.addEventListener('visibilitychange', syncAmbient) // a hidden tab is silent; it comes back with the tab
+  state.ambient.howl = toHowl(synth.drone(), { loop: true, volume: AMBIENT_VOLUME })
+  syncLoops()
+  document.addEventListener('visibilitychange', syncLoops) // a hidden tab is silent; it comes back with the tab
+  setTimeout(() => {
+    state.music.howl = toHowl(synth.music(), { loop: true, volume: MUSIC_VOLUME })
+    syncLoops()
+  }, 50)
 }
 
-/** Makes the hum match the wish: it sounds when the background sound is on and the tab is visible, and is completely
- *  stopped otherwise. Idempotent: safe to call as often as you like, it never starts a second copy. */
-function syncAmbient(): void {
-  const hum = state.ambient
-  if (!hum) return
-  if (state.ambientOn && !document.hidden) {
-    if (state.ambientId === null) state.ambientId = hum.play()
-    else if (!hum.playing(state.ambientId)) hum.play(state.ambientId)
-  } else if (state.ambientId !== null) {
-    hum.stop() // every copy, not a pause: it must be silent
-    state.ambientId = null
+/** Makes every loop match the wish: it sounds when wanted and the tab is visible, and is completely stopped otherwise.
+ *  Idempotent: safe to call as often as you like, it never starts a second copy. The music fades in. */
+function syncLoops(): void {
+  for (const l of [state.ambient, state.music]) {
+    const howl = l.howl
+    if (!howl) continue
+    if (l.wanted && !document.hidden) {
+      if (l.id === null) {
+        l.id = howl.play()
+        if (l.fadeMs) howl.fade(0, l.volume, l.fadeMs, l.id)
+      } else if (!howl.playing(l.id)) {
+        howl.play(l.id)
+      }
+    } else if (l.id !== null) {
+      howl.stop() // every copy, not a pause: it must be silent
+      l.id = null
+    }
   }
 }
 
 /** The background hum on / off. */
 export function setAmbientEnabled(on: boolean): void {
-  state.ambientOn = on
-  syncAmbient()
+  state.ambient.wanted = on
+  syncLoops()
 }
 
-/** Every sound except the background hum on / off. */
+/** The music on / off. */
+export function setMusicEnabled(on: boolean): void {
+  state.music.wanted = on
+  syncLoops()
+}
+
+/** Every other sound (not the hum, not the music) on / off. */
 export function setSfxEnabled(on: boolean): void {
   state.sfxOn = on
 }
