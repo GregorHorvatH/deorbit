@@ -127,9 +127,12 @@ Credits: weather by [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0); [Natur
 `pnpm build` produces a static site in `dist/`. Asset paths are relative, so it works from a domain root, a sub-path or a
 plain folder. Any static host will do:
 
+- **GitHub Pages:** the repository ships `.github/workflows/deploy.yml`. Set *Settings > Pages > Build and deployment >
+  Source* to **GitHub Actions** once; every push to `main` then checks, builds and publishes the site. Do not commit
+  `dist/`: the repository root holds the source `index.html` (it points at `/src/main.tsx` and only works under the dev
+  server), and the built one lives in the published artifact.
 - **Cloudflare Pages / Netlify / Vercel:** build command `pnpm build`, output directory `dist`.
-- **GitHub Pages:** publish the contents of `dist/`.
-- **By hand:** copy `dist/` to any web server.
+- **By hand:** copy the contents of `dist/` to any web server.
 
 The download is about 1.2 MB: three.js ~250 kB gzipped, the game and its map data ~140 kB, React ~65 kB and the 740 kB
 relief map (a PNG, not compressible further). Everything is cacheable; the first frames appear after ~2 s (the textures are
