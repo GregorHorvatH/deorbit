@@ -1,0 +1,31 @@
+.hud {
+  --text: #dbe4ee;
+  --dim: #8a99a8;
+  --green: #7dffb0;
+  --amber: #ffd479;
+  --turtle: #3ddc84;
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  box-sizing: border-box;
+  height: calc(111px * var(--s));
+  padding: calc(10px * var(--s));
+  background: #0a1017;
+  border: 1px solid #26323f;
+  font: 700 calc(11px * var(--s)) / 1.2 ui-monospace, Menlo, 'Courier New', monospace;
+  color: var(--text);
+  pointer-events: none; /* never steals the keyboard or the mouse from the game */
+  user-select: none;
+  white-space: pre;
+}
+.hud-title { height: calc(22px * var(--s)); font-size: calc(18px * var(--s)); line-height: calc(22px * var(--s)); color: var(--green); }
+.hud-info { height: calc(18px * var(--s)); color: var(--dim); }
+.hud-grid {
+  display: grid;
+  grid-template-columns: 4ch repeat(5, 6ch) 5ch;
+  grid-auto-rows: calc(17px * var(--s));
+  align-items: center;
+}
+.hud-grid > span:not(:first-child) { text-align: right; padding-right: 1ch; box-sizing: border-box; }
+.hud-grid > span:nth-child(7n + 1) { text-align: left; padding: 0; }
+.hud-head { color: var(--dim); }

@@ -1,0 +1,64 @@
+/** Keyboard: one press is one step (15 degrees / one altitude level). Holding a key does nothing more: auto-repeat is
+ *  ignored, so a value never runs away from you. */
+import { play, startAudio } from './audio/audio'
+import { climbPlayer, turnPlayer } from './sim'
+import { useSettings } from './state/settings'
+import { world } from './state/world'
+
+export type Steer = 'left' | 'right' | 'up' | 'down'
+
+/** One step of steering (a key press or a tap on a touch button): turn the orbit 15 degrees / change the altitude one level. */
+export function steer(kind: Steer): void {
+  const g = world.game
+  if (!g.layers.game) return
+  if (kind === 'left') turnPlayer(g, 1)
+  else if (kind === 'right') turnPlayer(g, -1)
+  else if (kind === 'up') climbPlayer(g, 1)
+  else climbPlayer(g, -1)
+  play(kind === 'left' ? 'tickL' : kind === 'right' ? 'tickR' : kind === 'up' ? 'tickU' : 'tickD')
+}
+
+const KEYS: Record<string, Steer> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }
+
+export function toggleFullscreen(): void {
+  if (document.fullscreenElement) void document.exitFullscreen()
+  else void document.documentElement.requestFullscreen?.()
+}
+
+/** Binds the shortcuts; returns the function that unbinds them. */
+export function bindInput(): () => void {
+  const held = new Set<string>()
+  const down = (e: KeyboardEvent): void => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    startAudio() // the first key press unlocks the sound
+    const kind = KEYS[e.code]
+    if (kind) {
+      e.preventDefault() // the arrows must not scroll the page
+      if (e.repeat || held.has(e.code)) return // auto-repeat of a held key
+      held.add(e.code)
+      steer(kind)
+    } else if ((e.code === 'KeyF' || e.code === 'F11') && !e.repeat) {
+      e.preventDefault()
+      toggleFullscreen()
+    } else if (e.code === 'KeyH' && !e.repeat) {
+      useSettings.getState().togglePanel()
+    } else if (e.code === 'KeyM' && !e.repeat) {
+      const st = useSettings.getState()
+      st.setAllSound(!(st.ambient || st.sfx)) // any sound on -> all off; all off -> all on
+    }
+  }
+  const up = (e: KeyboardEvent): void => void held.delete(e.code)
+  const clear = (): void => held.clear() // never leave a key "stuck" when the window loses focus
+  window.addEventListener('keydown', down)
+  window.addEventListener('pointerdown', startAudio) // a tap or a click unlocks the sound too
+  window.addEventListener('keyup', up)
+  window.addEventListener('blur', clear)
+  document.addEventListener('visibilitychange', clear)
+  return () => {
+    window.removeEventListener('keydown', down)
+    window.removeEventListener('pointerdown', startAudio)
+    window.removeEventListener('keyup', up)
+    window.removeEventListener('blur', clear)
+    document.removeEventListener('visibilitychange', clear)
+  }
+}

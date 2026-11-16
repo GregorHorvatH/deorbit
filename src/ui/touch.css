@@ -1,0 +1,35 @@
+.touch { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.touch button {
+  pointer-events: auto;
+  touch-action: none; /* no scrolling, zooming or double-tap delays on a button */
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  font: 700 26px/1 system-ui, sans-serif;
+  color: #dbe4ee;
+  background: rgba(13, 20, 28, 0.62);
+  border: 1px solid rgba(125, 255, 176, 0.35);
+  backdrop-filter: blur(2px);
+}
+.touch button:active { background: rgba(61, 220, 132, 0.4); color: #fff; }
+.touch-group {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+}
+.touch-turn { left: max(16px, env(safe-area-inset-left)); }
+.touch-alt { right: max(16px, env(safe-area-inset-right)); }
+.touch-btn { width: 76px; height: 76px; border-radius: 18px; }
+.touch-top {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  display: flex;
+  gap: 8px;
+}
+.touch-small { width: 44px; height: 44px; border-radius: 12px; font-size: 20px; }
+@media (max-width: 719px) {
+  /* on a phone the layers panel is a sheet over the picture, not a column that squeezes it */
+  .panel { position: absolute; z-index: 5; top: 0; bottom: 0; left: 0; width: min(380px, 90vw); box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5); }
+}
