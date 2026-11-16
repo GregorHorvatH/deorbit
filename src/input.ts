@@ -1,21 +1,33 @@
 /** Keyboard: one press is one step (15 degrees / one altitude level). Holding a key does nothing more: auto-repeat is
  *  ignored, so a value never runs away from you. */
 import { play, startAudio } from './audio/audio'
-import { climbPlayer, turnPlayer } from './sim'
+import { endPending, steerPlayer, type SteerKind } from './sim'
 import { useSettings } from './state/settings'
-import { world } from './state/world'
+import { startNewGame, togglePause, world } from './state/world'
 
-export type Steer = 'left' | 'right' | 'up' | 'down'
+export type Steer = SteerKind
 
 /** One step of steering (a key press or a tap on a touch button): turn the orbit 15 degrees / change the altitude one level. */
 export function steer(kind: Steer): void {
+  if (!steerPlayer(world.game, kind)) return // paused, out of fuel, or already at the limit: nothing happens
+  play(kind === 'left' ? 'puffL' : kind === 'right' ? 'puffR' : kind === 'up' ? 'puffU' : 'puffD')
+}
+
+/** Enter / Space / R / P / Escape: start, pause, play again - whatever the current screen offers. */
+export function screenKey(code: string): boolean {
   const g = world.game
-  if (!g.layers.game) return
-  if (kind === 'left') turnPlayer(g, 1)
-  else if (kind === 'right') turnPlayer(g, -1)
-  else if (kind === 'up') climbPlayer(g, 1)
-  else climbPlayer(g, -1)
-  play(kind === 'left' ? 'tickL' : kind === 'right' ? 'tickR' : kind === 'up' ? 'tickU' : 'tickD')
+  if (!g.layers.game || endPending(g)) return false // nothing to restart while the end is still playing out
+  const go = code === 'Enter' || code === 'Space'
+  if (g.status === 'ready' || g.status === 'won' || g.status === 'lost') {
+    if (go || code === 'KeyR') startNewGame()
+    else return false
+  } else if (g.status === 'paused') {
+    if (go || code === 'KeyP' || code === 'Escape') togglePause()
+    else if (code === 'KeyR') startNewGame()
+    else return false
+  } else if (code === 'KeyP' || code === 'Escape') togglePause()
+  else return false
+  return true
 }
 
 const KEYS: Record<string, Steer> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }
@@ -32,7 +44,9 @@ export function bindInput(): () => void {
     if (e.metaKey || e.ctrlKey || e.altKey) return
     startAudio() // the first key press unlocks the sound
     const kind = KEYS[e.code]
-    if (kind) {
+    if (!e.repeat && screenKey(e.code)) {
+      e.preventDefault()
+    } else if (kind) {
       e.preventDefault() // the arrows must not scroll the page
       if (e.repeat || held.has(e.code)) return // auto-repeat of a held key
       held.add(e.code)

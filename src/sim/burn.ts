@@ -3,7 +3,7 @@ import {
   ATMO_WIDTH, BURN_DRIFT, BURN_END, BURN_FALL, BURN_FALL_MIN, BURN_FIRE, ISS_ALT_RANGE, px, STEPS_PER_SECOND,
 } from './config'
 import { clamp01, dot, length, mul, unit, type V3 } from './vec'
-import type { Iss, Wreck } from './types'
+import type { Iss, Wreck, WreckKind } from './types'
 import { onOrbit } from './vec'
 
 /** The top of the air: the fire starts when the station reaches this radius. */
@@ -14,7 +14,7 @@ export type BurnPhase = 'fall' | 'fire'
 
 /** The station has just been caught: it starts to fall from where it was. Call this BEFORE the ISS is respawned.
  *  A station caught on a higher orbit has a longer way down, so it falls for longer. */
-export function startBurn(iss: Iss): Wreck {
+export function startBurn(iss: Iss, kind: WreckKind = 'iss'): Wreck {
   const { theta, r, u, v } = iss
   const c = Math.cos(theta)
   const s = Math.sin(theta)
@@ -25,6 +25,7 @@ export function startBurn(iss: Iss): Wreck {
   const span = Math.max(px(1), ISS_ALT_RANGE[1] - R_ATM)
   const high = clamp01((r0 - R_ATM) / span) // 0 = just above the air, 1 = the highest orbit
   return {
+    kind,
     u0: mul(pos, 1 / r0),
     r0,
     drift: mul(tangent, drift),

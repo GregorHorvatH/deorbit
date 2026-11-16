@@ -1,0 +1,32 @@
+.status {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  min-width: 210px;
+  padding: 8px 10px;
+  background: rgba(10, 16, 23, 0.82);
+  border: 1px solid #26323f;
+  font: 700 12px/1.55 ui-monospace, Menlo, 'Courier New', monospace;
+  color: #dbe4ee;
+  pointer-events: none;
+  user-select: none;
+}
+.touch ~ .status { top: 60px; left: 8px; }
+.status-row { display: flex; align-items: center; gap: 8px; }
+.status-name { flex: 0 0 5ch; color: #8a99a8; }
+.status-hearts { font-size: 15px; letter-spacing: 2px; }
+.status-hearts .full { color: #ff5d7a; }
+.status-hearts .empty { color: #3a2a30; }
+.status-bar { position: relative; flex: 0 0 90px; height: 8px; background: #15202b; border: 1px solid #2c3a49; }
+.status-bar > span { position: absolute; inset: 0 auto 0 0; background: #5ec8ff; }
+.status-bar.low > span { background: #ff5d5d; animation: status-blink 0.8s steps(2) infinite; }
+.status-num { color: #dbe4ee; }
+.status-amber { color: #ffd479; }
+.status-warn { color: #ff6b6b; animation: status-blink 0.8s steps(2) infinite; }
+.status-barrel { color: #ffb347; }
+.status-barrel .status-name { color: #ffb347; }
+.status-heart { color: #ff8fa8; }
+.status-heart .status-name { color: #ff5d7a; }
+@keyframes status-blink { 50% { opacity: 0.35; } }
+@media (max-width: 719px) { .status { min-width: 0; font-size: 11px; } .status-bar { flex-basis: 64px; } }

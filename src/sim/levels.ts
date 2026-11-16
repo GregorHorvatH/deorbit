@@ -19,5 +19,12 @@ export function issSpeedFraction(lvl: number): number {
   return fraction
 }
 
+/** The level on which the ISS first reaches its top speed: catching it there wins the game. */
+export const FINAL_LEVEL = ((): number => {
+  let lvl = 1
+  while (issSpeedFraction(lvl) < ISS_SPEED_MAX) lvl++
+  return lvl
+})()
+
 /** The ISS orbital speed (rad per step) at altitude alt on level lvl. */
 export const issOmega = (alt: number, lvl: number): number => issSpeedFraction(lvl) * turtleSpeed(alt)

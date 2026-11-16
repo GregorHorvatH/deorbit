@@ -1,5 +1,6 @@
-import { CATCH_RADIUS, HUD_AIM, HUD_CLOSE, PLAYER_TURN_STEP, RADIUS_PX } from '../sim'
+import { BARREL_FUEL, BARREL_LIFE_SECONDS, CATCH_RADIUS, DECAY_SECONDS, FINAL_LEVEL, FUEL_DOWN, FUEL_TURN, FUEL_UP, HEART_LIFE_SECONDS, HUD_AIM, WARN_SECONDS, HUD_CLOSE, PLAYER_TURN_STEP, RADIUS_PX } from '../sim'
 import { GRAPHICS_NAMES, LAYERS, useSettings } from '../state/settings'
+import { BarrelIcon, HeartIcon } from './Icons'
 import './panel.css'
 
 const px = (r: number): number => Math.round(r * RADIUS_PX)
@@ -71,13 +72,23 @@ export function Panel() {
 
       <h2>GAME</h2>
       <p>
-        Catch the ISS with the turtle.
+        Catch the ISS {FINAL_LEVEL} times with the turtle.
         <br />
-        Left / Right - turn the orbit ({turn} deg)
+        Left / Right - turn the orbit ({turn} deg, fuel {FUEL_TURN})
         <br />
-        Up / Down - raise / lower it (one step)
+        Up / Down - raise / lower it (fuel {FUEL_UP} / {FUEL_DOWN})
         <br />
-        Each catch: faster ISS + one more satellite
+        Each catch: faster ISS + one more satellite + fuel
+        <br />
+        A satellite hit costs 1 hull
+        <br />
+        <HeartIcon /> heart ({HEART_LIFE_SECONDS} s, only if hurt): +1 hull
+        <br />
+        <BarrelIcon /> barrel of fuel ({BARREL_LIFE_SECONDS} s): +{BARREL_FUEL} fuel
+        <br />
+        Every {DECAY_SECONDS} s the orbit sinks one level; below the lowest you burn up
+        <br />
+        {WARN_SECONDS} s before: an alarm. Up then HOLDS the orbit (fuel {FUEL_UP}), no climb
       </p>
       <hr />
 
@@ -90,7 +101,7 @@ export function Panel() {
           </div>
         ))}
       </dl>
-      <p className="panel-dim">F - fullscreen &nbsp; H - hide panel &nbsp; M - mute / unmute all</p>
+      <p className="panel-dim">P / Esc - pause &nbsp; F - fullscreen &nbsp; H - hide panel &nbsp; M - mute / unmute all</p>
     </aside>
   )
 }

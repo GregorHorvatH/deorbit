@@ -6,11 +6,13 @@ import { hudSnapshot } from './sim'
 import { Atmosphere } from './render/Atmosphere'
 import { Bloom } from './render/Bloom'
 import { CameraRig } from './render/CameraRig'
+import { Barrel } from './render/Barrel'
 import { Cities } from './render/Cities'
 import { Clouds } from './render/Clouds'
 import { setWeatherMap } from './render/cloudUniforms'
 import { FIRST_MORPH_SECONDS, MORPH_SECONDS } from './render/coverage'
 import { Globe } from './render/Globe'
+import { Heart } from './render/Heart'
 import { Iss } from './render/Iss'
 import { Overlay } from './render/Overlay'
 import { Satellites } from './render/Satellites'
@@ -25,6 +27,8 @@ import { useSettings } from './state/settings'
 import { advance, world } from './state/world'
 import { Hud } from './ui/Hud'
 import { Panel } from './ui/Panel'
+import { Screens } from './ui/Screens'
+import { Status } from './ui/Status'
 import { TouchControls } from './ui/TouchControls'
 
 /** Drives the fixed-step simulation from the render loop, publishes the instruments to the HUD ~15 times a second,
@@ -113,6 +117,8 @@ export default function App() {
           <Cities />
           <Satellites />
           <Iss />
+          <Heart />
+          <Barrel />
           <Turtle />
           <Wrecks />
           <Overlay />
@@ -120,6 +126,8 @@ export default function App() {
         </Canvas>
         {game && <Hud />}
         <TouchControls />
+        {game && <Status />}
+        <Screens />
       </div>
     </div>
   )

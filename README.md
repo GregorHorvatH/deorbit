@@ -3,8 +3,24 @@
 ![Deorbit: a turtle on its orbit around the Earth, the ISS ringed in orange, satellites with trails, clouds from real weather](docs/screenshot.jpg)
 
 Fly a turtle on a satellite orbit around a realistic, spinning Earth and catch the ISS. Every catch makes the station burn
-up in the atmosphere, raises the level (a faster ISS and one more satellite) and the score. The game has no end: the levels
-simply get harder until the ISS reaches 95% of the turtle's speed.
+up in the atmosphere, raises the level (a faster ISS and one more satellite) and refuels you. Catch it **13 times** to win:
+the last station flies at 95% of the turtle's speed.
+
+The mission has real stakes:
+
+- **Hull** (3 hearts): a satellite hit costs one; at zero the turtle burns up.
+- **Fuel** (a tank of 100): every key press burns some (turning 2, climbing 4, descending 1); a caught ISS refuels you.
+  Without fuel you cannot steer. From time to time, while the tank is below three quarters, a **barrel of fuel** appears on
+  an orbit for 15 seconds: catch it for 40 more; miss it and it falls out of orbit and burns.
+- **Orbit decay:** air drag lowers your orbit one level every 20 seconds. Sink below the lowest orbit and you burn up.
+  Three seconds before each sinking an **alarm** beeps, and in that window a press of `↑` does not climb but **holds** the
+  altitude (it costs the fuel of a climb): the alarm stops and the countdown starts over. Miss the window and you sink one
+  level. On the lowest orbit the alarm is harsher and twice as fast, because the next sinking is the end. Outside the window
+  `↑` climbs as usual.
+- **Hearts:** from time to time (only while some hull is missing) a heart appears on an orbit for 15 seconds. Catch it for
+  one hull point back (never more than 3); miss it and it falls out of orbit and burns.
+
+There is a title screen, a pause, and a win / lose screen with your best result (remembered in the browser).
 
 Built with TypeScript, Vite, React Three Fiber (Three.js), zustand and Howler. The ground (continents, lakes, rivers, deserts,
 ice) is painted in code at start-up from vector data (Natural Earth), and the city lights are derived from the same data;
@@ -26,16 +42,19 @@ Needs Node 22+ (developed on Node 24) and pnpm. `.npmrc` pins the public npm reg
 
 | Input | Action |
 |---|---|
-| `←` `→` | turn the turtle's orbit left / right by 15 degrees |
+| `Enter` / `Space` | start, and play again after the end |
+| `P` / `Esc` | pause / resume (`R` restarts from the pause) |
+| `←` `→` | turn the turtle's orbit left / right by 15 degrees (a puff of the side thrusters and a "pshhh") |
 | `↑` `↓` | raise / lower the orbit by one altitude level (7 levels) |
 | `F` / `F11` | fullscreen |
 | `H` | hide / show the side panel (layers, FPS) |
 | `M` | mute / unmute all sound (the panel has separate switches for the background sound, the music and the other sounds; remembered) |
-| touch | four on-screen buttons, plus panel / sound / fullscreen buttons |
+| touch | four on-screen buttons, plus pause / panel / sound / fullscreen buttons |
 
 **One press is one step.** Holding a key (or a finger) repeats nothing, so a value never runs away from you. The
 instruments in the top-right corner (ALT, SPD, DST, BRG, ETA, MIS) forecast the next 15 seconds, so you can see what a tap
-will do before you press it. The side panel lists what every column means.
+will do before you press it. The side panel lists what every column means. The ship's condition (hull, fuel, the countdown to
+the next sinking, the heart's timer) is in the top-left corner.
 
 ## How it is organised
 
@@ -78,7 +97,7 @@ docs/         the screenshot
 
 ## Tests
 
-`pnpm test` runs the whole suite (about 100 tests, a few seconds). The simulator is checked against **frozen reference
+`pnpm test` runs the whole suite (about 140 tests, a few seconds). The simulator is checked against **frozen reference
 values** in `tests/golden/golden.json` (forecasts, orbits, speeds, bumps, burns, a catch), computed once by an earlier
 prototype implementation of the game. The prototype is not part of this project and nothing needs it: the JSON is
 committed, and `scripts/gen_golden.py` only documents how the values were made. If you change the rules on purpose, update
@@ -86,7 +105,7 @@ the expected values.
 
 Random choices (the next ISS orbit, the stars) are tested by their properties, and the 10 satellite orbits are fixed data.
 The rest of the tests cover the speed system and levels, the HUD numbers, the layout, the day/night curve, the automatic
-quality, the synthesised sounds and the music (loop seam, chords), the map data (seas are water, deserts are deserts, lights follow the coasts and rivers),
+quality, the rules of the mission (hull, fuel, orbit decay, hearts, barrels, winning, pausing, restarting), the synthesised sounds and the music (loop seam, chords), the map data (seas are water, deserts are deserts, lights follow the coasts and rivers),
 the relief map (decoded and checked against the Himalaya and the Mariana Trench), the cloud geometry against the real scene
 graph, and the weather schedule with a fake network (a rate limit, being offline, a hidden tab, a reload within the hour).
 
@@ -145,7 +164,7 @@ painted at start-up).
 ## URL options and developer shortcuts
 
 - `?touch=1` shows the touch buttons on a desktop (works in the built site too).
-- Dev server only: `?score=7` starts on level 8 (to look at the satellites without playing).
+- Dev server only: `?score=7` starts on level 8 straight away, skipping the title screen (to look at the satellites without playing).
 - Dev server only: `window.__world` is the live simulation and `window.__audio` the sound counters, for the console and
   browser tests.
 

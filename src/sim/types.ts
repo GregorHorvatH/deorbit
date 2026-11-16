@@ -23,8 +23,22 @@ export interface Iss {
   theta: number
 }
 
-/** A caught station that is falling / burning. */
+export type GameStatus = 'ready' | 'playing' | 'paused' | 'won' | 'lost'
+export type LostReason = 'hull' | 'reentry'
+export type SteerKind = 'left' | 'right' | 'up' | 'down'
+export type WreckKind = 'iss' | 'heart' | 'barrel' | 'turtle'
+
+/** A heart on its orbit: the same shape as the ISS, plus the steps it has left before it falls. */
+export interface Heart extends Iss {
+  life: number
+}
+
+/** A barrel of fuel on its orbit: the same shape as a heart. */
+export type Barrel = Heart
+
+/** A falling / burning thing: the caught station, a heart or a barrel nobody caught, or the lost turtle. */
 export interface Wreck {
+  kind: WreckKind
   u0: V3
   r0: number
   drift: V3
@@ -34,11 +48,11 @@ export interface Wreck {
   tFire: number
 }
 
-export type EffectKind = 'capture' | 'bump' | 'spawn' | 'burnout'
+export type EffectKind = 'capture' | 'bump' | 'spawn' | 'burnout' | 'heal' | 'refuel'
 
 /** Things that happened in the simulation, for the outside world (sound): one per ring flash. The consumer drains the
  *  list; the simulation only ever appends to it. */
-export type GameEvent = EffectKind
+export type GameEvent = EffectKind | 'decay' | 'lost' | 'won' | 'heartLost' | 'barrelLost' | 'warn' | 'danger' | 'hold'
 
 /** A ring flash at world position (x, y) (Earth radii), `age` steps old. */
 export interface Effect {
@@ -56,6 +70,28 @@ export interface Layers {
 }
 
 export interface GameState {
+  status: GameStatus
+  lostReason: LostReason | null
+  /** hull points left */
+  hull: number
+  fuel: number
+  /** steps until the orbit sinks one level */
+  decay: number
+  /** steps played (not counting a pause) */
+  elapsed: number
+  heart: Heart | null
+  /** steps until the next heart may appear (counts down only while hull is missing and no heart flies) */
+  heartTimer: number
+  /** hearts made so far (seeds the next one: they never touch `rng`) */
+  heartSerial: number
+  barrel: Barrel | null
+  barrelTimer: number
+  barrelSerial: number
+  /** steps still to wait (once nothing burns any more) before the end screen may show
+   *  (counts down only after a win or a loss) */
+  endDelay: number
+  /** the thruster puff of the last key press (drawn beside the turtle) */
+  jet: { kind: SteerKind; life: number } | null
   /** simulation time in steps */
   tick: number
   /** how far the globe has turned, radians */

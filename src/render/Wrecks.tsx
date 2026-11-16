@@ -1,21 +1,25 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo } from 'react'
-import { CircleGeometry, Color, Group, Mesh, MeshBasicMaterial } from 'three'
+import { CircleGeometry, Color, Group, Mesh, MeshBasicMaterial, ShapeGeometry } from 'three'
 import { length, RADIUS_PX, wreckState } from '../sim'
 import { world } from '../state/world'
 import { fireColor, hex } from './colors'
+import { makeBarrel } from './barrelModel'
 import { GLOW_MASK } from './glow'
+import { heartShape } from './heartShape'
 import { makeStation } from './station'
-import { BURN_COLORS, ISS_BODY, ISS_PANEL, ISS_SIZE, ISS_TRUSS } from './style'
+import { BARREL_BAND, BARREL_BODY, BARREL_SIZE, BURN_COLORS, HEART_COLORS, HEART_SIZE, ISS_BODY, ISS_PANEL, ISS_SIZE, ISS_TRUSS, PLAYER_COLOR } from './style'
 
 const POOL = 4 // stations falling at once (a burn lasts under a second)
 const disc = new CircleGeometry(1, 28)
+const heartGeo = new ShapeGeometry(heartShape())
 const FIREBALL: ReadonlyArray<readonly [number, number]> = [[1.0, 3], [0.72, 2], [0.46, 1], [0.22, 0]] // [scale, BURN_COLORS index]
 
 const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v)
 
-/** A caught station: it falls intact (turning orange as it nears the air), then burns inside ONE fireball that swells
- *  and shrinks while the station melts away. Pooled: nothing is created while playing. */
+/** Whatever falls out of orbit: a caught station, a heart nobody caught, the lost turtle. It falls intact (turning orange as
+ *  it nears the air), then burns inside ONE fireball that swells and shrinks while it melts away. Pooled: nothing is
+ *  created while playing. */
 export function Wrecks() {
   const pool = useMemo(
     () =>
@@ -31,8 +35,19 @@ export function Wrecks() {
         const st = makeStation()
         st.group.position.z = 0.02 // the station is drawn on top of its own fire
         root.add(st.group)
+        const heartMat = new MeshBasicMaterial()
+        const heart = new Mesh(heartGeo, heartMat)
+        heart.position.z = 0.02
+        root.add(heart)
+        const bar = makeBarrel()
+        bar.group.position.z = 0.02
+        root.add(bar.group)
+        const dotMat = new MeshBasicMaterial()
+        const dot = new Mesh(disc, dotMat) // the turtle is just a small round shape on its way down
+        dot.position.z = 0.02
+        root.add(dot)
         root.visible = false
-        return { root, balls, st }
+        return { root, balls, st, heart, heartMat, dot, dotMat, bar }
       }),
     [],
   )
@@ -66,8 +81,28 @@ export function Wrecks() {
           b.scale.setScalar((rad * FIREBALL[j][0]) / RADIUS_PX)
         })
       }
-      slot.st.group.scale.setScalar((ISS_SIZE * depth * shrink) / RADIUS_PX)
       const burnt = fireColor(tmp, 0.3).clone()
+      slot.st.group.visible = w.kind === 'iss'
+      slot.heart.visible = w.kind === 'heart'
+      slot.bar.group.visible = w.kind === 'barrel'
+      slot.dot.visible = w.kind === 'turtle'
+      if (w.kind === 'heart') {
+        slot.heart.scale.setScalar((HEART_SIZE * depth * shrink) / RADIUS_PX)
+        slot.heartMat.color.lerpColors(hex(HEART_COLORS[0]), burnt, heat)
+        return
+      }
+      if (w.kind === 'barrel') {
+        slot.bar.group.scale.setScalar((BARREL_SIZE * depth * shrink) / RADIUS_PX)
+        slot.bar.body.color.lerpColors(hex(BARREL_BODY[0]), burnt, heat)
+        slot.bar.band.color.lerpColors(hex(BARREL_BAND[0]), burnt, heat)
+        return
+      }
+      if (w.kind === 'turtle') {
+        slot.dot.scale.setScalar((7 * depth * shrink) / RADIUS_PX)
+        slot.dotMat.color.lerpColors(hex(PLAYER_COLOR[0]), burnt, heat)
+        return
+      }
+      slot.st.group.scale.setScalar((ISS_SIZE * depth * shrink) / RADIUS_PX)
       slot.st.truss.color.lerpColors(hex(ISS_TRUSS[0]), burnt, heat)
       slot.st.panel.color.lerpColors(hex(ISS_PANEL[0]), burnt, heat)
       slot.st.body.color.lerpColors(hex(ISS_BODY[0]), burnt, heat)

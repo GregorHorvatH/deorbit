@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { startAudio } from '../audio/audio'
 import { steer, toggleFullscreen, type Steer } from '../input'
+import { useHud } from '../state/hud'
 import { useSettings } from '../state/settings'
+import { togglePause } from '../state/world'
 import './touch.css'
 
 /** A touch screen (or ?touch=1 for testing). A hybrid laptop starts without them and gets them on the first touch. */
@@ -41,6 +43,7 @@ export function TouchControls() {
   }, [touch])
   const sound = useSettings((s) => s.ambient || s.music || s.sfx)
   const { setAllSound, togglePanel } = useSettings.getState()
+  const status = useHud((s) => s.status)
   if (!touch) return null
   return (
     <div className="touch" onContextMenu={(e) => e.preventDefault()}>
@@ -49,6 +52,11 @@ export function TouchControls() {
         <button type="button" className="touch-small" aria-label={sound ? 'Sound off' : 'Sound on'} onClick={() => setAllSound(!sound)}>
           {sound ? '🔊' : '🔇'}
         </button>
+        {(status === 'playing' || status === 'paused') && (
+          <button type="button" className="touch-small" aria-label={status === 'paused' ? 'Resume' : 'Pause'} onClick={togglePause}>
+            {status === 'paused' ? '▶' : '⏸'}
+          </button>
+        )}
         <button type="button" className="touch-small" aria-label="Fullscreen" onClick={toggleFullscreen}>⛶</button>
       </div>
       <div className="touch-group touch-turn" aria-label="Turn the orbit">

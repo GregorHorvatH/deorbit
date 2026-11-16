@@ -40,11 +40,99 @@ function limit(out: Float32Array, peak: number): Float32Array {
   return out
 }
 
-/** A short UI tick; the pitch tells the four keys apart (left, right, up, down). */
-export function tick(freq: number): Float32Array {
-  const o = buf(0.06)
-  tone(o, 0, 0.06, freq, freq * 0.7, 0.5, 2)
-  return limit(o, 0.35)
+/** Hiss: white noise with the rumble taken out (a fast and a slow low-pass, subtracted), `bright` 0..1 = how high it sounds. */
+function hiss(out: Float32Array, start: number, dur: number, amp: number, bright: number, env: (t: number) => number, seed: number): void {
+  const rnd = mulberry32(seed)
+  const n = Math.round(dur * RATE)
+  const i0 = Math.round(start * RATE)
+  let fast = 0
+  let slow = 0
+  for (let i = 0; i < n && i0 + i < out.length; i++) {
+    const w = rnd.uniform(-1, 1)
+    fast += (0.25 + 0.7 * bright) * (w - fast)
+    slow += (0.02 + 0.2 * bright) * (w - slow)
+    out[i0 + i] += (fast - slow) * amp * env(i / n)
+  }
+}
+
+/** A thruster puff, the "pshhh" of a steering jet: a sharp opening, then a hiss that thins out. `bright` and `dur` tell the
+ *  four keys apart (left, right, up, down). */
+export function puff(bright: number, dur = 0.26): Float32Array {
+  const o = buf(dur)
+  hiss(o, 0, dur, 1, bright, (t) => Math.min(1, t / 0.04) * (1 - t) ** 1.8, 31 + Math.round(bright * 10))
+  return limit(o, 0.4)
+}
+
+/** A heart is caught: a soft, warm two-note chime. */
+export function heal(): Float32Array {
+  const o = buf(0.7)
+  ;[[659.25, 0], [987.77, 0.11]].forEach(([f, at]) => {
+    tone(o, at, 0.55, f, f, 0.5, 2.2)
+    tone(o, at, 0.45, f * 2, f * 2, 0.1, 2.5)
+  })
+  return limit(o, 0.45)
+}
+
+/** A barrel of fuel is caught: a hollow clunk, then a short rising gurgle. */
+export function refuel(): Float32Array {
+  const o = buf(0.55)
+  tone(o, 0, 0.18, 190, 110, 0.9, 2.4)
+  tone(o, 0.12, 0.35, 330, 700, 0.35, 1.5)
+  hiss(o, 0.12, 0.3, 0.12, 0.3, (t) => Math.sin(Math.PI * t), 61)
+  return limit(o, 0.5)
+}
+
+/** The alarm before the orbit sinks: a clean, short beep. */
+export function warn(): Float32Array {
+  const o = buf(0.16)
+  tone(o, 0, 0.14, 880, 880, 0.8, 1.2)
+  tone(o, 0, 0.1, 1760, 1760, 0.12, 1.5)
+  return limit(o, 0.45)
+}
+
+/** The alarm on the lowest orbit, where the next sinking is the end: a harsh, beating two-tone siren. */
+export function danger(): Float32Array {
+  const o = buf(0.2)
+  const env = (t: number): number => Math.min(1, t / 0.03) * (1 - t) ** 0.5
+  for (const f of [660, 700, 1320]) {
+    const n = Math.round(0.2 * RATE)
+    for (let i = 0; i < n; i++) o[i] += Math.sign(Math.sin((2 * Math.PI * f * i) / RATE)) * 0.25 * env(i / n) // square: raw and buzzy
+  }
+  return limit(o, 0.5)
+}
+
+/** The altitude is held: a short, firm confirmation. */
+export function hold(): Float32Array {
+  const o = buf(0.22)
+  tone(o, 0, 0.09, 440, 440, 0.6, 1.5)
+  tone(o, 0.07, 0.14, 660, 660, 0.6, 2)
+  return limit(o, 0.4)
+}
+
+/** Air drag drops the orbit one level: a low, short downward groan. */
+export function decay(): Float32Array {
+  const o = buf(0.5)
+  tone(o, 0, 0.45, 150, 62, 0.8, 1.6)
+  hiss(o, 0, 0.3, 0.25, 0.1, (t) => (1 - t) ** 2, 41)
+  return limit(o, 0.5)
+}
+
+/** The turtle is lost: a long fall in pitch under a burst of fire. */
+export function lost(): Float32Array {
+  const o = buf(1.6)
+  tone(o, 0, 1.5, 420, 45, 0.7, 1.4)
+  hiss(o, 0, 1.2, 0.9, 0.15, (t) => Math.sin(Math.PI * Math.min(1, t * 1.15)) ** 1.5, 51)
+  return limit(o, 0.55)
+}
+
+/** The mission is won: a slow, rising chord of bells. */
+export function won(): Float32Array {
+  const o = buf(2.6)
+  ;[261.63, 329.63, 392, 523.25, 659.25, 783.99].forEach((f, i) => {
+    tone(o, i * 0.22, 1.9, f, f, 0.45, 1.6)
+    tone(o, i * 0.22, 1.5, f * 2, f * 2, 0.1, 2)
+  })
+  return limit(o, 0.55)
 }
 
 /** The ISS is caught: a bright rising arpeggio. */

@@ -1,0 +1,66 @@
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  background: rgba(3, 6, 10, 0.55);
+  backdrop-filter: blur(1.5px);
+  font: 14px/1.45 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #dbe4ee;
+}
+.card {
+  width: min(520px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 22px 26px;
+  background: rgba(10, 16, 23, 0.94);
+  border: 1px solid #26323f;
+  border-radius: 10px;
+  text-align: center;
+}
+.card h1 { margin: 0 0 10px; font: 800 28px/1.1 system-ui, sans-serif; letter-spacing: 0.08em; color: #7dffb0; }
+.card.loss h1 { color: #ff7a6b; }
+.card.win h1 { color: #ffd479; }
+.card p { margin: 8px 0; }
+.card .dim { color: #8a99a8; font-size: 13px; }
+.card ul { margin: 12px 0; padding: 0; list-style: none; text-align: left; }
+.card li { margin: 6px 0; padding-left: 12px; border-left: 2px solid #26323f; }
+.card .pink { color: #ff7a9a; font-weight: 700; }
+.card .amber { color: #ffb347; font-weight: 700; }
+.card .keys { color: #9fb1c2; font-size: 13px; }
+.card .record { color: #ffd479; font-weight: 700; }
+kbd {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 5px;
+  border: 1px solid #3a4a5b;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: #15202b;
+  color: #dbe4ee;
+  font: 700 12px/1.5 ui-monospace, Menlo, monospace;
+}
+.result { display: flex; justify-content: center; gap: 28px; margin: 14px 0; }
+.result dt { color: #8a99a8; font-size: 12px; }
+.result dd { margin: 2px 0 0; font: 800 24px/1.1 ui-monospace, Menlo, monospace; }
+.actions { display: flex; justify-content: center; gap: 12px; margin: 16px 0 4px; }
+.actions button {
+  cursor: pointer;
+  padding: 10px 22px;
+  border: 1px solid #3ddc84;
+  border-radius: 8px;
+  background: #123524;
+  color: #dbe4ee;
+  font: 700 15px/1 system-ui, sans-serif;
+  touch-action: manipulation;
+}
+.actions button.go { background: #1c5a3b; }
+.actions button.quiet { border-color: #3a4a5b; background: #15202b; }
+.actions button:hover { filter: brightness(1.25); }
+.actions button kbd { margin-left: 6px; }
+@media (max-width: 719px) { .card { padding: 16px 16px; } .card h1 { font-size: 22px; } .card ul { font-size: 13px; } }

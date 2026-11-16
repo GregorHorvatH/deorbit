@@ -25,5 +25,6 @@
 @media (max-width: 719px) { .panel { font-size: 13px; } }
 .panel { touch-action: pan-y; }
 
+.panel .icon { width: 1.05em; height: 1.05em; vertical-align: -0.18em; margin-right: 3px; }
 .panel-note { margin: 2px 0 4px 23px; line-height: 1.3; }
 .panel a { color: #8fb8ff; }

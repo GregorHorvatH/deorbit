@@ -4,20 +4,28 @@ import { Howl, Howler, type HowlOptions } from 'howler'
 import type { GameEvent } from '../sim'
 import * as synth from './synth'
 
-export type SoundName = 'tickL' | 'tickR' | 'tickU' | 'tickD' | 'capture' | 'bump' | 'spawn' | 'burn' | 'pop'
+export type SoundName = 'puffL' | 'puffR' | 'puffU' | 'puffD' | 'capture' | 'bump' | 'spawn' | 'burn' | 'pop' | 'heal' | 'refuel' | 'warn' | 'danger' | 'hold' | 'decay' | 'lost' | 'won'
 
 const SOURCES: Record<SoundName, () => Float32Array> = {
-  tickL: () => synth.tick(760),
-  tickR: () => synth.tick(860),
-  tickU: () => synth.tick(1040),
-  tickD: () => synth.tick(560),
+  puffL: () => synth.puff(0.45),
+  puffR: () => synth.puff(0.55),
+  puffU: () => synth.puff(0.8, 0.32),
+  puffD: () => synth.puff(0.2, 0.32),
   capture: synth.capture,
   bump: synth.bump,
   spawn: synth.spawn,
   burn: synth.burn,
   pop: synth.pop,
+  heal: synth.heal,
+  refuel: synth.refuel,
+  warn: synth.warn,
+  danger: synth.danger,
+  hold: synth.hold,
+  decay: synth.decay,
+  lost: synth.lost,
+  won: synth.won,
 }
-const VOLUME: Partial<Record<SoundName, number>> = { burn: 0.8, tickL: 0.6, tickR: 0.6, tickU: 0.6, tickD: 0.6 }
+const VOLUME: Partial<Record<SoundName, number>> = { burn: 0.8, puffL: 0.7, puffR: 0.7, puffU: 0.7, puffD: 0.7 }
 const AMBIENT_VOLUME = 0.12
 const MUSIC_VOLUME = 0.4
 const MUSIC_FADE_MS = 4000
@@ -144,6 +152,15 @@ export function playEvents(events: readonly GameEvent[]): void {
     } else if (e === 'bump') play('bump')
     else if (e === 'spawn') play('spawn')
     else if (e === 'burnout') play('pop')
+    else if (e === 'heal') play('heal')
+    else if (e === 'refuel') play('refuel')
+    else if (e === 'warn') play('warn')
+    else if (e === 'danger') play('danger')
+    else if (e === 'hold') play('hold')
+    else if (e === 'decay') play('decay')
+    else if (e === 'lost') play('lost')
+    else if (e === 'won') play('won')
+    else if (e === 'heartLost' || e === 'barrelLost') play('burn')
   }
 }
 

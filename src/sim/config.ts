@@ -59,6 +59,45 @@ export const BURN_DRIFT = px(30)
 export const BURN_END = px(5)
 export const FORECAST_SECONDS = 15
 
+// --- The mission: hull, fuel, orbit decay, hearts ---
+/** Hull points. A satellite hit costs one; a heart gives one back (never above the maximum); none left = lost. */
+export const HULL_MAX = 3
+/** Fuel: every key press costs some, a caught ISS or a barrel refuels. Out of fuel = no steering (the orbit still decays).
+ */
+export const FUEL_MAX = 100
+export const FUEL_TURN = 2
+export const FUEL_UP = 4
+export const FUEL_DOWN = 1
+export const FUEL_PER_CATCH = 60
+/** Air drag: every DECAY_SECONDS the orbit sinks by one altitude level; one more at the lowest level = the turtle burns up. */
+export const DECAY_SECONDS = 20
+export const DECAY_STEPS = DECAY_SECONDS * STEPS_PER_SECOND
+/** The last WARN_SECONDS before the sinking: an alarm beeps (every BEEP_STEPS, twice as often and harsher on the lowest
+ *  orbit) and a press of Up in that window HOLDS the altitude instead of raising it: it costs the fuel of a climb, silences
+ *  the alarm and starts the DECAY_SECONDS countdown over. */
+export const WARN_SECONDS = 3
+export const WARN_STEPS = WARN_SECONDS * STEPS_PER_SECOND
+export const BEEP_STEPS = 20
+export const DANGER_BEEP_STEPS = 10
+/** A heart appears (only while some hull is missing) 20-30 s after the last one, stays HEART_LIFE_SECONDS, then falls and burns. */
+export const HEART_LIFE_SECONDS = 15
+export const HEART_LIFE_STEPS = HEART_LIFE_SECONDS * STEPS_PER_SECOND
+export const HEART_HEAL = 1
+/** A barrel of fuel appears (only while the tank is below BARREL_BELOW of full) 25-35 s after the last one, stays
+ *  BARREL_LIFE_SECONDS, then falls and burns like a heart. A caught one gives BARREL_FUEL. */
+export const BARREL_LIFE_SECONDS = 15
+export const BARREL_LIFE_STEPS = BARREL_LIFE_SECONDS * STEPS_PER_SECOND
+export const BARREL_FUEL = 40
+export const BARREL_BELOW = 0.75
+/** A heart flies at this fraction of the turtle's speed on its orbit. */
+export const HEART_SPEED = 0.3
+/** ... and a barrel too. */
+export const BARREL_SPEED = 0.3
+/** The thruster puff after a key press, in steps. */
+export const JET_STEPS = 14
+/** After the game is won or lost the end screen waits until the fire is out, and then this long (1 second) more. */
+export const ENDING_DELAY_STEPS = STEPS_PER_SECOND
+
 // --- Effects ---
 export const EFFECT_LIFE = 26
 export const WOBBLE_LIFE = 30

@@ -6,7 +6,16 @@ const peak = (a: Float32Array): number => a.reduce((m, v) => Math.max(m, Math.ab
 const rms = (a: Float32Array, from = 0, to = a.length): number => Math.sqrt(a.slice(from, to).reduce((s, v) => s + v * v, 0) / (to - from))
 
 const all: Array<[string, () => Float32Array, number]> = [
-  ['tick', () => synth.tick(800), 0.06],
+  ['puff', () => synth.puff(0.5), 0.26],
+  ['puff (long)', () => synth.puff(0.8, 0.32), 0.32],
+  ['heal', synth.heal, 0.7],
+  ['refuel', synth.refuel, 0.55],
+  ['warn', synth.warn, 0.16],
+  ['danger', synth.danger, 0.2],
+  ['hold', synth.hold, 0.22],
+  ['decay', synth.decay, 0.5],
+  ['lost', synth.lost, 1.6],
+  ['won', synth.won, 2.6],
   ['capture', synth.capture, 0.55],
   ['bump', synth.bump, 0.32],
   ['spawn', synth.spawn, 0.25],
@@ -30,7 +39,7 @@ describe('synthesised sounds', () => {
   })
 
   test('the effects die away (no click at the end)', () => {
-    for (const make of [synth.capture, synth.bump, synth.spawn, synth.pop, synth.burn]) {
+    for (const make of [synth.capture, synth.bump, synth.spawn, synth.pop, synth.burn, () => synth.puff(0.5), synth.heal, synth.refuel, synth.warn, synth.hold, synth.decay, synth.lost, synth.won]) {
       const s = make()
       expect(rms(s, s.length - 200)).toBeLessThan(rms(s) * 0.2)
     }
@@ -83,7 +92,7 @@ describe('synthesised sounds', () => {
   })
 
   test('WAV container: header, size, rate, 16-bit mono', () => {
-    const s = synth.tick(800)
+    const s = synth.puff(0.5)
     const w = synth.encodeWav(s)
     const dv = new DataView(w.buffer)
     expect(String.fromCharCode(...w.slice(0, 4))).toBe('RIFF')

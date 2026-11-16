@@ -38,17 +38,17 @@ export function Hud() {
         {['ALT', 'SPD', 'DST', 'BRG', 'ETA', 'MIS'].map((n) => (
           <span key={n} className="hud-head">{n}</span>
         ))}
-        {cells('ISS', AMBER, [
-          [h.issAlt.toFixed(2), alt],
-          [h.issSpeed.toFixed(1), TEXT],
+        {cells('TUR', 'var(--turtle)', [
+          [h.turAlt.toFixed(2), alt],
+          [h.turSpeed.toFixed(1), TEXT],
           [String(px(h.dst)), h.dst < HUD_CLOSE * CATCH_RADIUS ? GREEN : TEXT],
           [bearingText(h.bearing), Math.abs(h.bearing) < HUD_AIM ? GREEN : TEXT],
           [h.eta === null ? '--' : `${h.eta.toFixed(1)}s`, h.eta === null ? DIM : course],
           [String(px(h.miss)), course],
         ])}
-        {cells('TUR', 'var(--turtle)', [
-          [h.turAlt.toFixed(2), alt],
-          [h.turSpeed.toFixed(1), TEXT],
+        {cells('ISS', AMBER, [
+          [h.issAlt.toFixed(2), alt],
+          [h.issSpeed.toFixed(1), TEXT],
           ['-', DIM], ['-', DIM], ['-', DIM], ['-', DIM],
         ])}
       </div>

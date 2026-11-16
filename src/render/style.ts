@@ -76,7 +76,26 @@ export const TURTLE_SHAPE: ReadonlyArray<readonly [number, number]> = [
 export const RING_GREEN = '#7dffb0'
 export const RING_AMBER = '#ffd479'
 export const RING_AMBER_HIDDEN = '#8a6a30'
-export const EFFECT_COLORS = { capture: '#7dffb0', bump: '#ff9a3c', spawn: '#8fb8ff', burnout: '#ff9a3c' } as const
+export const EFFECT_COLORS = { capture: '#7dffb0', bump: '#ff9a3c', spawn: '#8fb8ff', burnout: '#ff9a3c', heal: '#ff7a9a', refuel: '#ffb347' } as const
+
+// --- The heart pickup, and the thruster puff beside the turtle ---
+export const HEART_SIZE = 7
+export const HEART_COLORS = ['#ff5d7a', '#a8344d'] as const // day, night
+export const HEART_RING = '#ff8fa8'
+export const HEART_RING_HIDDEN = '#7a3a48'
+export const HEART_TRAIL = 12
+// --- The barrel of fuel ---
+export const BARREL_SIZE = 1.9
+export const BARREL_BODY = ['#f08a2c', '#6e3a12'] as const // day, night
+export const BARREL_BAND = ['#7c3a10', '#3a1c08'] as const
+export const BARREL_TRAIL_COLOR = '#ffc474'
+export const BARREL_TRAIL = 12
+export const BARREL_RING = '#ffb347'
+export const BARREL_RING_HIDDEN = '#7a5320'
+// --- The turtle's outline flickers while the sinking alarm sounds ---
+export const WARN_OUTLINE = '#ffd23c'
+export const DANGER_OUTLINE = '#ff3b3b'
+export const JET_COLOR = '#bfe6ff'
 
 // --- The caught station burns up: white-hot ... a cooling ember ---
 export const BURN_COLORS = ['#fff7d6', '#ffd36b', '#ff8a2a', '#d83a12', '#5a1408'] as const
