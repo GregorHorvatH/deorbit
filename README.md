@@ -1,4 +1,4 @@
-# Deorbit
+# Deorbit 1.0
 
 ![Deorbit: a turtle on its orbit around the Earth, the ISS ringed in orange, satellites with trails, clouds from real weather](docs/screenshot.jpg)
 
