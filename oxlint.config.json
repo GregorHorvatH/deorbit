@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "react",
+    "typescript",
+    "oxc"
+  ],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/sim/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "three",
+                  "three/*",
+                  "react",
+                  "react-dom",
+                  "@react-three/*",
+                  "zustand",
+                  "../render/*",
+                  "../ui/*",
+                  "../state/*"
+                ],
+                "message": "src/sim is pure logic: no rendering, React or state-store imports."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/render/**"
+      ],
+      "rules": {
+        "react/immutability": "off"
+      }
+    }
+  ]
+}

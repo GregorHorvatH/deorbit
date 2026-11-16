@@ -9,11 +9,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "oxlint -c oxlint.config.json src tests vite.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "check": "tsc -b && oxlint && vitest run"
+    "check": "tsc -b && pnpm lint && vitest run"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",
