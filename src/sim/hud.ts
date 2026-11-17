@@ -23,9 +23,9 @@ export interface HudSnapshot {
   /** the turtle is on the lowest orbit: the next sinking burns it up */
   lowest: boolean
   /** seconds a heart has left, null = no heart flies */
-  heart: number | null
+  heart: boolean
   /** seconds a barrel of fuel has left, null = none flies */
-  barrel: number | null
+  barrel: boolean
   /** seconds played */
   elapsed: number
   /** the level on which catching the ISS wins */
@@ -69,8 +69,8 @@ export function hudSnapshot(g: GameState): HudSnapshot {
     warning: inWarning(g),
     canHold: g.fuel >= FUEL_UP,
     lowest: g.player.alt <= PLAYER_ALT_RANGE[0] + 1e-9,
-    heart: g.heart ? Math.max(0, g.heart.life / STEPS_PER_SECOND) : null,
-    barrel: g.barrel ? Math.max(0, g.barrel.life / STEPS_PER_SECOND) : null,
+    heart: g.heart !== null,
+    barrel: g.barrel !== null,
     elapsed: g.elapsed / STEPS_PER_SECOND,
     finalLevel: FINAL_LEVEL,
     score: g.score,

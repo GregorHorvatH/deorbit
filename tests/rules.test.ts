@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import {
   altLevels, bumpPlayer, createGame, DECAY_STEPS, FINAL_LEVEL, FUEL_DOWN, FUEL_MAX, FUEL_PER_CATCH, FUEL_TURN, FUEL_UP,
-  BARREL_BELOW, BARREL_FUEL, BARREL_LIFE_STEPS, spawnBarrel, HEART_LIFE_STEPS, hudSnapshot, issSpeedFraction, JET_STEPS, mulberry32, PLAYER_ALT_RANGE, playerPos, resetGame, spawnHeart,
+  BARREL_BELOW, BARREL_FUEL, spawnBarrel, hudSnapshot, issSpeedFraction, JET_STEPS, mulberry32, PLAYER_ALT_RANGE, playerPos, resetGame, spawnHeart,
   inWarning, endPending, ENDING_DELAY_STEPS, WARN_STEPS, startBurn, STEPS_PER_SECOND, step, steerPlayer, HULL_MAX, ISS_SPAWN_CLEARANCE, dist, onOrbit, type GameState, type Rng,
 } from '../src/sim'
 
@@ -354,7 +354,7 @@ describe('hearts', () => {
     expect(g.heartSerial).toBe(0)
   })
 
-  test('with a damaged hull a heart appears after 20-30 seconds, and lives 15 seconds', () => {
+  test('with a damaged hull a heart appears after 20-30 seconds', () => {
     const g = quiet()
     g.hull = 2
     let appeared = -1
@@ -369,21 +369,18 @@ describe('hearts', () => {
     }
     expect(appeared).toBeGreaterThanOrEqual(19.5)
     expect(appeared).toBeLessThanOrEqual(30.5)
-    expect(g.heart!.life).toBeCloseTo(HEART_LIFE_STEPS, 0)
     expect(altLevels().some((a) => Math.abs(a - g.heart!.r) < 1e-9)).toBe(true)
     expect(dist(onOrbit(g.heart!.r, g.heart!.u, g.heart!.v, g.heart!.theta), playerPos(g))).toBeGreaterThan(ISS_SPAWN_CLEARANCE)
   })
 
-  test('an uncaught heart falls and burns after 15 seconds; the next one comes later', () => {
+  test('an uncaught heart never expires: it waits, however long, until it is caught', () => {
     const g = quiet()
     g.hull = 1
     spawnHeart(g, [10, 10, 10])
-    // keep the turtle away from it: park it on the far side by freezing its position relative to nothing - the heart flies off its own orbit
-    for (let i = 0; i < HEART_LIFE_STEPS - 1; i++) {
+    for (let i = 0; i < 120 * STEPS_PER_SECOND; i++) {
       g.decay = DECAY_STEPS
-      g.heart!.life = Math.min(g.heart!.life, HEART_LIFE_STEPS - i)
       g.player.hit = 100 // no satellites anyway
-      // never let the turtle catch it: move the heart far from the turtle every step
+      // never let the turtle catch it: put the heart opposite the turtle every step
       g.heart!.u = [-g.player.p[0], -g.player.p[1], -g.player.p[2]]
       g.heart!.v = [0, 0, 1]
       g.heart!.r = 1.3
@@ -392,15 +389,7 @@ describe('hearts', () => {
       step(g, 1)
     }
     expect(g.heart).not.toBeNull()
-    g.heart!.u = [-g.player.p[0], -g.player.p[1], -g.player.p[2]]
-    g.heart!.v = [0, 0, 1]
-    g.heart!.theta = 0
-    g.heart!.omega = 0
-    g.decay = DECAY_STEPS
-    step(g, 1)
-    expect(g.heart).toBeNull()
-    expect(g.wrecks.at(-1)?.kind).toBe('heart')
-    expect(g.events).toContain('heartLost')
+    expect(g.wrecks).toHaveLength(0)
     expect(g.hull).toBe(1) // nothing was healed
   })
 
@@ -472,10 +461,9 @@ describe('barrels of fuel', () => {
     }
     expect(appeared).toBeGreaterThanOrEqual(24.5)
     expect(appeared).toBeLessThanOrEqual(35.5)
-    expect(g.barrel!.life).toBeCloseTo(BARREL_LIFE_STEPS, 0)
     expect(altLevels().some((a) => Math.abs(a - g.barrel!.r) < 1e-9)).toBe(true)
     expect(dist(onOrbit(g.barrel!.r, g.barrel!.u, g.barrel!.v, g.barrel!.theta), playerPos(g))).toBeGreaterThan(ISS_SPAWN_CLEARANCE)
-    expect(hudSnapshot(g).barrel).not.toBeNull()
+    expect(hudSnapshot(g).barrel).toBe(true)
   })
 
   test('a caught barrel adds its fuel, never above the tank', () => {
@@ -495,23 +483,65 @@ describe('barrels of fuel', () => {
     }
   })
 
-  test('an uncaught barrel falls and burns after 15 seconds', () => {
+  test('an uncaught barrel never expires: it waits, however long, until it is caught', () => {
     const g = quiet()
     g.fuel = 10
     spawnBarrel(g, [10, 10, 10])
-    for (let i = 0; i < BARREL_LIFE_STEPS + 2 && g.barrel; i++) {
+    for (let i = 0; i < 120 * STEPS_PER_SECOND; i++) {
       hold(g)
       // keep it away from the turtle: opposite the turtle, not moving
-      g.barrel.u = [-g.player.p[0], -g.player.p[1], -g.player.p[2]]
-      g.barrel.v = [0, 0, 1]
-      g.barrel.theta = 0
-      g.barrel.omega = 0
+      g.barrel!.u = [-g.player.p[0], -g.player.p[1], -g.player.p[2]]
+      g.barrel!.v = [0, 0, 1]
+      g.barrel!.theta = 0
+      g.barrel!.omega = 0
       step(g, 1)
     }
-    expect(g.barrel).toBeNull()
-    expect(g.wrecks.at(-1)?.kind).toBe('barrel')
-    expect(g.events).toContain('barrelLost')
+    expect(g.barrel).not.toBeNull()
+    expect(g.wrecks).toHaveLength(0)
     expect(g.fuel).toBe(10)
+  })
+
+  describe('with no fuel left the barrel may wait on the turtle\'s own orbit', () => {
+    const noFuel = (serial: number): GameState => {
+      const g = quiet()
+      g.fuel = 0
+      g.barrelSerial = serial
+      return g
+    }
+    const onTurtleOrbit = (g: GameState): boolean => g.barrel!.u === g.player.p && g.barrel!.v === g.player.t
+
+    test('about 65% of them (the same every game); a turtle that still has fuel never gets one', () => {
+      let future = 0
+      const N = 400
+      for (let i = 0; i < N; i++) {
+        const g = noFuel(i)
+        spawnBarrel(g, [10, 10, 10])
+        if (onTurtleOrbit(g)) future++
+        const h = quiet()
+        h.fuel = FUEL_DOWN
+        h.barrelSerial = i
+        spawnBarrel(h, [10, 10, 10])
+        expect(onTurtleOrbit(h)).toBe(false)
+      }
+      expect(future / N).toBeGreaterThan(0.58)
+      expect(future / N).toBeLessThan(0.72)
+    })
+
+    test('the turtle that flies on, steering nothing, picks it up on the way (2-3 turns ahead)', () => {
+      let caught = 0
+      let tried = 0
+      for (let i = 0; i < 60; i++) {
+        const g = noFuel(i)
+        g.player.hit = 1e9 // nothing bumps it
+        spawnBarrel(g, [10, 10, 10])
+        if (!onTurtleOrbit(g)) continue
+        tried++
+        for (let s = 0; s < 45 * STEPS_PER_SECOND && g.barrel && g.status === 'playing'; s++) step(g, 1) // 45 s is 3+ turns
+        if (g.barrel === null && g.fuel === BARREL_FUEL) caught++
+      }
+      expect(tried).toBeGreaterThan(20)
+      expect(caught).toBe(tried) // every one of them can be reached
+    })
   })
 
   test('barrels never touch the main random generator, and a heart and a barrel can fly together', () => {
@@ -572,7 +602,7 @@ describe('start, pause, restart', () => {
     g.hull = 2
     g.fuel = 33
     spawnHeart(g, [10, 10, 10])
-    expect(hudSnapshot(g)).toMatchObject({ status: 'playing', hull: 2, hullMax: HULL_MAX, fuel: 33, fuelMax: FUEL_MAX, finalLevel: 13, heart: 15, lostReason: null })
+    expect(hudSnapshot(g)).toMatchObject({ status: 'playing', hull: 2, hullMax: HULL_MAX, fuel: 33, fuelMax: FUEL_MAX, finalLevel: 13, heart: true, lostReason: null })
   })
 
   test('a burn of the turtle starts where it flies', () => {

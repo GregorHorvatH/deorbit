@@ -26,17 +26,15 @@ export interface Iss {
 export type GameStatus = 'ready' | 'playing' | 'paused' | 'won' | 'lost'
 export type LostReason = 'hull' | 'reentry'
 export type SteerKind = 'left' | 'right' | 'up' | 'down'
-export type WreckKind = 'iss' | 'heart' | 'barrel' | 'turtle'
+export type WreckKind = 'iss' | 'turtle'
 
-/** A heart on its orbit: the same shape as the ISS, plus the steps it has left before it falls. */
-export interface Heart extends Iss {
-  life: number
-}
+/** A heart on its orbit: the same shape as the ISS. It stays until it is caught. */
+export type Heart = Iss
 
 /** A barrel of fuel on its orbit: the same shape as a heart. */
 export type Barrel = Heart
 
-/** A falling / burning thing: the caught station, a heart or a barrel nobody caught, or the lost turtle. */
+/** A falling / burning thing: the caught station, or the lost turtle. */
 export interface Wreck {
   kind: WreckKind
   u0: V3
@@ -52,7 +50,7 @@ export type EffectKind = 'capture' | 'bump' | 'spawn' | 'burnout' | 'heal' | 're
 
 /** Things that happened in the simulation, for the outside world (sound): one per ring flash. The consumer drains the
  *  list; the simulation only ever appends to it. */
-export type GameEvent = EffectKind | 'decay' | 'lost' | 'won' | 'heartLost' | 'barrelLost' | 'warn' | 'danger' | 'hold'
+export type GameEvent = EffectKind | 'decay' | 'lost' | 'won' | 'warn' | 'danger' | 'hold'
 
 /** A ring flash at world position (x, y) (Earth radii), `age` steps old. */
 export interface Effect {

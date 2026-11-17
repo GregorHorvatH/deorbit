@@ -1,4 +1,4 @@
-import { BARREL_FUEL, BARREL_LIFE_SECONDS, CATCH_RADIUS, DECAY_SECONDS, FINAL_LEVEL, FUEL_DOWN, FUEL_TURN, FUEL_UP, HEART_LIFE_SECONDS, HUD_AIM, WARN_SECONDS, HUD_CLOSE, PLAYER_TURN_STEP, RADIUS_PX } from '../sim'
+import { BARREL_FUEL, CATCH_RADIUS, DECAY_SECONDS, FINAL_LEVEL, FUEL_DOWN, FUEL_TURN, FUEL_UP, HUD_AIM, WARN_SECONDS, HUD_CLOSE, PLAYER_TURN_STEP, RADIUS_PX } from '../sim'
 import { GRAPHICS_NAMES, LAYERS, useSettings } from '../state/settings'
 import { BarrelIcon, HeartIcon } from './Icons'
 import './panel.css'
@@ -83,9 +83,9 @@ export function Panel() {
         <br />
         A satellite hit costs 1 hull
         <br />
-        <HeartIcon /> heart ({HEART_LIFE_SECONDS} s, only if hurt): +1 hull
+        <HeartIcon /> heart (only if hurt): +1 hull
         <br />
-        <BarrelIcon /> barrel of fuel ({BARREL_LIFE_SECONDS} s): +{BARREL_FUEL} fuel
+        <BarrelIcon /> barrel of fuel: +{BARREL_FUEL} fuel
         <br />
         Every {DECAY_SECONDS} s the orbit sinks one level; below the lowest you burn up
         <br />

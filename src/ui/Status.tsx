@@ -55,16 +55,16 @@ export function Status() {
           </span>
         </div>
       </div>
-      {h.barrel !== null && (
+      {h.barrel && (
         <div className="status-row status-barrel">
           <span className="status-name">⛽</span>
-          <span>catch the fuel: {Math.ceil(h.barrel)}s</span>
+          <span>catch the fuel</span>
         </div>
       )}
-      {h.heart !== null && (
+      {h.heart && (
         <div className="status-row status-heart">
           <span className="status-name">♥</span>
-          <span>catch the heart: {Math.ceil(h.heart)}s</span>
+          <span>catch the heart</span>
         </div>
       )}
     </div>

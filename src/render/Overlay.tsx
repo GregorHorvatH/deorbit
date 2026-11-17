@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo } from 'react'
 import type { OrthographicCamera } from 'three'
-import { CATCH_RADIUS, dist, EFFECT_LIFE, HUD_CLOSE, onOrbit, STEPS_PER_SECOND, targetForecast, type GameState, type Iss } from '../sim'
+import { CATCH_RADIUS, dist, EFFECT_LIFE, HUD_CLOSE, onOrbit, targetForecast, type GameState, type Iss } from '../sim'
 import { renderTick, world } from '../state/world'
 import { GLOW_MASK } from './glow'
 import { hex } from './colors'
@@ -89,9 +89,8 @@ export function Overlay() {
     if (heart) {
       const hp = onOrbit(heart.r, heart.u, heart.v, heart.theta + heart.omega * world.alpha)
       const r = CATCH_RADIUS * (1 + 0.08 * Math.sin(renderTick() * 0.3 + 1))
-      const blink = heart.life < 4 * STEPS_PER_SECOND && Math.floor(renderTick() / 4) % 2 === 0 // the last 4 seconds: it flickers
       circle(o.xyz, hp[0], hp[1], r)
-      fill(hp[2] >= 0 ? HEART_RING : HEART_RING_HIDDEN, blink ? 0.25 : 1)
+      fill(hp[2] >= 0 ? HEART_RING : HEART_RING_HIDDEN, 1)
       o.heartRing.set(SEGMENTS + 1, o.xyz, o.rgba, px, { on: 5 * px, period: 9 * px }, true)
       if (g.status === 'playing' && onCourse(g, heart)) sight(o.heartSight, hp, hp[2] >= 0 ? HEART_RING : HEART_RING_HIDDEN, 1)
       else o.heartSight.hide()
@@ -104,9 +103,8 @@ export function Overlay() {
     if (barrel) {
       const bp = onOrbit(barrel.r, barrel.u, barrel.v, barrel.theta + barrel.omega * world.alpha)
       const r = CATCH_RADIUS * (1 + 0.08 * Math.sin(renderTick() * 0.3 + 2))
-      const blink = barrel.life < 4 * STEPS_PER_SECOND && Math.floor(renderTick() / 4) % 2 === 0
       circle(o.xyz, bp[0], bp[1], r)
-      fill(bp[2] >= 0 ? BARREL_RING : BARREL_RING_HIDDEN, blink ? 0.25 : 1)
+      fill(bp[2] >= 0 ? BARREL_RING : BARREL_RING_HIDDEN, 1)
       o.barrelRing.set(SEGMENTS + 1, o.xyz, o.rgba, px, { on: 5 * px, period: 9 * px }, true)
       if (g.status === 'playing' && onCourse(g, barrel)) sight(o.barrelSight, bp, bp[2] >= 0 ? BARREL_RING : BARREL_RING_HIDDEN, 2)
       else o.barrelSight.hide()

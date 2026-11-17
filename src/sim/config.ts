@@ -79,16 +79,16 @@ export const WARN_SECONDS = 3;
 export const WARN_STEPS = WARN_SECONDS * STEPS_PER_SECOND;
 export const BEEP_STEPS = 20;
 export const DANGER_BEEP_STEPS = 10;
-/** A heart appears (only while some hull is missing) 20-30 s after the last one, stays HEART_LIFE_SECONDS, then falls and burns. */
-export const HEART_LIFE_SECONDS = 15;
-export const HEART_LIFE_STEPS = HEART_LIFE_SECONDS * STEPS_PER_SECOND;
+/** A heart appears (only while some hull is missing) 20-30 s after the last one, and stays until it is caught. */
 export const HEART_HEAL = 1;
-/** A barrel of fuel appears (only while the tank is below BARREL_BELOW of full) 25-35 s after the last one, stays
- *  BARREL_LIFE_SECONDS, then falls and burns like a heart. A caught one gives BARREL_FUEL. */
-export const BARREL_LIFE_SECONDS = 15;
-export const BARREL_LIFE_STEPS = BARREL_LIFE_SECONDS * STEPS_PER_SECOND;
+/** A barrel of fuel appears (only while the tank is below BARREL_BELOW of full) 25-35 s after the last one, and stays
+ *  until it is caught. A caught one gives BARREL_FUEL. */
 export const BARREL_FUEL = 40;
 export const BARREL_BELOW = 0.75;
+/** A turtle with no fuel left cannot steer, so its orbit is its future: with this chance the barrel is put right on it
+ *  (on the altitude the turtle will have by then), to be met after BARREL_AHEAD_ORBITS turns of the turtle. */
+export const BARREL_FUTURE_CHANCE = 0.65;
+export const BARREL_AHEAD_ORBITS: readonly [number, number] = [2, 3];
 /** A heart flies at this fraction of the turtle's speed on its orbit. */
 export const HEART_SPEED = 0.3;
 /** ... and a barrel too. */

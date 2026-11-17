@@ -1,8 +1,8 @@
 /** The game: the turtle, the ISS, levels, collisions and the burning of a caught station.
  *  Logic only: nothing here draws, and nothing here knows about three.js or React. */
 import {
-  BARREL_BELOW, BARREL_FUEL, BEEP_STEPS, ENDING_DELAY_STEPS, DANGER_BEEP_STEPS, WARN_STEPS, BARREL_LIFE_STEPS, BARREL_SPEED, BUMP_COOLDOWN, BUMP_LEVELS, BUMP_RADIUS, BUMP_TURN, BURN_ANIMATION, CATCH_RADIUS, DECAY_STEPS, EFFECT_LIFE, FUEL_DOWN,
-  FUEL_MAX, FUEL_PER_CATCH, FUEL_TURN, FUEL_UP, HEART_HEAL, HEART_LIFE_STEPS, HEART_SPEED, HULL_MAX, ISS_ALT_RANGE,
+  BARREL_AHEAD_ORBITS, BARREL_BELOW, BARREL_FUEL, BARREL_FUTURE_CHANCE, BEEP_STEPS, ENDING_DELAY_STEPS, DANGER_BEEP_STEPS, WARN_STEPS, BARREL_SPEED, BUMP_COOLDOWN, BUMP_LEVELS, BUMP_RADIUS, BUMP_TURN, BURN_ANIMATION, CATCH_RADIUS, DECAY_STEPS, EFFECT_LIFE, FUEL_DOWN,
+  FUEL_MAX, FUEL_PER_CATCH, FUEL_TURN, FUEL_UP, HEART_HEAL, HEART_SPEED, HULL_MAX, ISS_ALT_RANGE,
   ISS_PHASE, ISS_SPAWN_CLEARANCE, JET_STEPS, PLAYER_ALT_RANGE, PLAYER_ALT_STEP, PLAYER_REF_ALT, PLAYER_TURN_STEP,
   SAT_SPAWN_CLEARANCE, SPEED, STEPS_PER_SECOND, WOBBLE_LIFE,
 } from './config'
@@ -10,7 +10,7 @@ import { startBurn, wreckState } from './burn'
 import { FINAL_LEVEL, issOmega, turtleSpeed } from './levels'
 import { makeIssOrbit, makeOrbits } from './orbits'
 import { mulberry32, type Rng } from './rng'
-import type { Effect, EffectKind, GameState, LostReason, SteerKind } from './types'
+import type { Effect, EffectKind, GameState, Iss, LostReason, SteerKind } from './types'
 import { add, cross, dist, dot, length, mul, onOrbit, orbitBasis, sub, unit, type V3 } from './vec'
 
 /** Steps until the next heart may appear: 20-30 seconds, fixed by how many there have been (no random numbers are used). */
@@ -237,19 +237,57 @@ function pickupOrbit(seed: number, avoid: V3): { r: number; u: V3; v: V3; theta:
 export function spawnHeart(g: GameState, avoid: V3): void {
   const o = pickupOrbit(0x9e3779b1 ^ Math.imul(g.heartSerial + 1, 0x85ebca6b), avoid)
   g.heartSerial++
-  g.heart = { ...o, omega: HEART_SPEED * turtleSpeed(o.r), life: HEART_LIFE_STEPS }
+  g.heart = { ...o, omega: HEART_SPEED * turtleSpeed(o.r) }
   addEffect(g, 'spawn', onOrbit(o.r, o.u, o.v, o.theta))
+}
+
+/** A barrel for a turtle that is out of fuel (it cannot steer: its orbit is fixed, only the air drag lowers it): with
+ *  BARREL_FUTURE_CHANCE it is placed on that orbit so that the turtle reaches it after 2-3 turns, at the altitude it
+ *  will have by then. Null = no such barrel (the chance failed, or the turtle burns up before it could get there). */
+function futureBarrel(g: GameState, seed: number): Iss | null {
+  const rnd = mulberry32(seed ^ 0x5bd1e995)
+  if (rnd.uniform(0, 1) >= BARREL_FUTURE_CHANCE) return null
+  const [lo] = PLAYER_ALT_RANGE
+  const target = 2 * Math.PI * rnd.uniform(BARREL_AHEAD_ORBITS[0], BARREL_AHEAD_ORBITS[1]) // the turtle's angle when it gets there
+  // fly the turtle ahead, level by level (it flies slower every time the drag lowers it)
+  let alt = g.player.alt
+  let untilDrop = g.decay
+  let angle = 0
+  let steps = 0
+  for (;;) {
+    const w = turtleSpeed(alt)
+    const need = (target - angle) / w
+    if (need <= untilDrop) {
+      steps += need
+      break
+    }
+    angle += w * untilDrop
+    steps += untilDrop
+    if (alt <= lo + 1e-9) return null // it burns up first
+    alt = Math.max(lo, alt - PLAYER_ALT_STEP)
+    untilDrop = DECAY_STEPS
+  }
+  const omega = BARREL_SPEED * turtleSpeed(alt)
+  const theta = (((target - omega * steps) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) // so that both are in one place then
+  return { r: alt, u: g.player.p, v: g.player.t, omega, theta }
 }
 
 /** A new barrel of fuel. */
 export function spawnBarrel(g: GameState, avoid: V3): void {
-  const o = pickupOrbit(0x7f4a7c15 ^ Math.imul(g.barrelSerial + 1, 0xc2b2ae35), avoid)
+  const seed = 0x7f4a7c15 ^ Math.imul(g.barrelSerial + 1, 0xc2b2ae35)
+  const future = g.fuel < FUEL_DOWN ? futureBarrel(g, seed) : null // no fuel left: it may wait on the turtle's own orbit
   g.barrelSerial++
-  g.barrel = { ...o, omega: BARREL_SPEED * turtleSpeed(o.r), life: BARREL_LIFE_STEPS }
-  addEffect(g, 'spawn', onOrbit(o.r, o.u, o.v, o.theta))
+  if (future) {
+    g.barrel = future
+  } else {
+    const o = pickupOrbit(seed, avoid)
+    g.barrel = { ...o, omega: BARREL_SPEED * turtleSpeed(o.r) }
+  }
+  const b = g.barrel
+  addEffect(g, 'spawn', onOrbit(b.r, b.u, b.v, b.theta))
 }
 
-/** The heart: appears from time to time while the hull is damaged; caught = one hull point back; not caught = it falls and burns. */
+/** The heart: appears from time to time while the hull is damaged; caught = one hull point back; not caught = it waits (it never expires). */
 function updateHeart(g: GameState, steps: number, pos: V3): void {
   const h = g.heart
   if (!h) {
@@ -267,16 +305,9 @@ function updateHeart(g: GameState, steps: number, pos: V3): void {
     g.heartTimer = heartDelay(g.heartSerial)
     return
   }
-  h.life -= steps
-  if (h.life <= 0) {
-    g.wrecks.push(startBurn(h, 'heart'))
-    g.events.push('heartLost')
-    g.heart = null
-    g.heartTimer = heartDelay(g.heartSerial)
-  }
 }
 
-/** The barrel of fuel: appears from time to time while the tank is low; caught = BARREL_FUEL back; not caught = it falls and burns. */
+/** The barrel of fuel: appears from time to time while the tank is low; caught = BARREL_FUEL back; not caught = it waits (it never expires). */
 function updateBarrel(g: GameState, steps: number, pos: V3): void {
   const b = g.barrel
   if (!b) {
@@ -293,13 +324,6 @@ function updateBarrel(g: GameState, steps: number, pos: V3): void {
     g.barrel = null
     g.barrelTimer = barrelDelay(g.barrelSerial)
     return
-  }
-  b.life -= steps
-  if (b.life <= 0) {
-    g.wrecks.push(startBurn(b, 'barrel'))
-    g.events.push('barrelLost')
-    g.barrel = null
-    g.barrelTimer = barrelDelay(g.barrelSerial)
   }
 }
 

@@ -89,8 +89,8 @@ export function Screens() {
           satellite and refuels you. The last one flies at 95% of your speed.
         </p>
         <ul>
-          <li><b>Hull <span className="pink">♥♥♥</span>.</b> A satellite hit costs one. A <span className="pink">heart</span> that appears for 15 s gives one back.</li>
-          <li><b>Fuel.</b> Every key press burns some (climbing the most). No fuel, no steering. A caught ISS, or a <span className="amber">barrel</span> that appears for 15 s, refuels you.</li>
+          <li><b>Hull <span className="pink">♥♥♥</span>.</b> A satellite hit costs one. A <span className="pink">heart</span> that appears when you are hurt gives one back.</li>
+          <li><b>Fuel.</b> Every key press burns some (climbing the most). No fuel, no steering. A caught ISS, or a <span className="amber">barrel</span> that appears when the tank runs low, refuels you.</li>
           <li><b>Air drag.</b> Every {Math.round(h.decayIn)} s your orbit sinks one level; below the lowest one you burn up. An alarm sounds 3 s before: press <kbd>↑</kbd> then to hold your altitude.</li>
         </ul>
         <p className="keys">

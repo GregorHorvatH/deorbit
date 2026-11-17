@@ -160,7 +160,6 @@ export function playEvents(events: readonly GameEvent[]): void {
     else if (e === 'decay') play('decay')
     else if (e === 'lost') play('lost')
     else if (e === 'won') play('won')
-    else if (e === 'heartLost' || e === 'barrelLost') play('burn')
   }
 }
 
