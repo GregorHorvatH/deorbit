@@ -1,5 +1,6 @@
-import { CATCH_RADIUS, HUD_AIM, HUD_ALT_NEAR, HUD_CLOSE, RADIUS_PX } from '../sim'
+import { CATCH_RADIUS, HUD_AIM, HUD_CLOSE, RADIUS_PX } from '../sim'
 import { useHud, useView } from '../state/hud'
+import { altColor } from './altColor'
 import './hud.css'
 
 const GREEN = 'var(--green)'
@@ -18,7 +19,7 @@ export function Hud() {
   const h = useHud()
   const scale = useView((s) => s.hudScale)
   const course = h.miss < CATCH_RADIUS ? GREEN : h.miss < 2 * CATCH_RADIUS ? AMBER : TEXT
-  const alt = h.levelsOff === 0 ? GREEN : h.levelsOff <= HUD_ALT_NEAR ? AMBER : TEXT
+  const alt = altColor(h.levelsOff)
   const cells = (label: string, labelColor: string, row: Array<[string, string]>): React.ReactNode => (
     <>
       <span style={{ color: labelColor }}>{label}</span>

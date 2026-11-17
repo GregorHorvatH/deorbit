@@ -122,8 +122,11 @@ export function steerPlayer(g: GameState, kind: SteerKind): boolean {
   const cost = kind === 'up' ? FUEL_UP : kind === 'down' ? FUEL_DOWN : FUEL_TURN
   if (g.fuel < cost) return false
   g.fuel -= cost
-  if (kind === 'left') turnPlayer(g, 1)
-  else if (kind === 'right') turnPlayer(g, -1)
+  // The camera looks at the globe from one side only. Behind the Earth (p.z < 0) the sphere is seen from the inside, so the
+  // turtle's own left appears on the screen's right: there the keys follow the turtle as drawn, so Left still turns it left.
+  const side: 1 | -1 = g.player.p[2] < 0 ? -1 : 1
+  if (kind === 'left') turnPlayer(g, side)
+  else if (kind === 'right') turnPlayer(g, side === 1 ? -1 : 1)
   else climbPlayer(g, kind === 'up' ? 1 : -1)
   g.jet = { kind, life: JET_STEPS }
   return true

@@ -2,7 +2,7 @@
  *  Scalar code without allocations in the inner loop. */
 import { CATCH_RADIUS, FORECAST_SECONDS, TICK_MS } from './config'
 import { turtleSpeed } from './levels'
-import type { GameState } from './types'
+import type { GameState, Iss } from './types'
 import { cross, dot, mul, sub, unit, type V3 } from './vec'
 import { onOrbit } from './vec'
 
@@ -16,9 +16,14 @@ export interface Forecast {
 /** Both objects keep flying their current orbits for FORECAST_SECONDS. Returns the closest pass; if the turtle would
  *  catch the ISS (come within CATCH_RADIUS) it reports the FIRST such pass, not a later closer one. */
 export function interceptForecast(g: GameState): Forecast {
+  return targetForecast(g, g.iss)
+}
+
+/** The same for anything on an orbit of its own (the ISS, a heart, a barrel). */
+export function targetForecast(g: GameState, target: Iss): Forecast {
   const { p, t, alt: rt } = g.player
   const wt = turtleSpeed(rt)
-  const { omega: wi, r: ri, u, v, theta: th } = g.iss
+  const { omega: wi, r: ri, u, v, theta: th } = target
 
   const gap = (tau: number): number => {
     const c = Math.cos(wt * tau)

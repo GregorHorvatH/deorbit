@@ -1,0 +1,22 @@
+.alt-labels {
+  --text: #dbe4ee;
+  --dim: #8a99a8;
+  --green: #7dffb0;
+  --amber: #ffd479;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none; /* never steals the keyboard or the mouse from the game */
+  user-select: none;
+  font: 700 10px / 1 ui-monospace, Menlo, 'Courier New', monospace;
+  white-space: pre;
+}
+.alt-labels > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  color: var(--dim);
+  text-shadow: 0 0 3px #000, 0 0 3px #000; /* readable over the globe and the stars */
+  will-change: transform;
+}

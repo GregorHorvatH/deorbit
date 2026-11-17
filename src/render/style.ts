@@ -76,6 +76,9 @@ export const TURTLE_SHAPE: ReadonlyArray<readonly [number, number]> = [
 export const RING_GREEN = '#7dffb0'
 export const RING_AMBER = '#ffd479'
 export const RING_AMBER_HIDDEN = '#8a6a30'
+/** The aiming reticle drawn around a target the turtle's course points straight at (the ISS, a heart, a barrel). */
+export const RETICLE_ISS = RING_GREEN
+export const RETICLE_ISS_HIDDEN = '#3f8059'
 export const EFFECT_COLORS = { capture: '#7dffb0', bump: '#ff9a3c', spawn: '#8fb8ff', burnout: '#ff9a3c', heal: '#ff7a9a', refuel: '#ffb347' } as const
 
 // --- The heart pickup, and the thruster puff beside the turtle ---

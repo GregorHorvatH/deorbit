@@ -25,6 +25,7 @@ import { QualityMonitor } from './state/quality'
 import { realDeps, startWeather } from './state/weatherLoader'
 import { useSettings } from './state/settings'
 import { advance, world } from './state/world'
+import { AltLabels, AltLabelsDriver } from './ui/AltLabels'
 import { Hud } from './ui/Hud'
 import { Panel } from './ui/Panel'
 import { Screens } from './ui/Screens'
@@ -122,8 +123,10 @@ export default function App() {
           <Turtle />
           <Wrecks />
           <Overlay />
+          <AltLabelsDriver />
           <Bloom />
         </Canvas>
+        {game && <AltLabels />}
         {game && <Hud />}
         <TouchControls />
         {game && <Status />}
