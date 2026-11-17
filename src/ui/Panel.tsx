@@ -8,7 +8,7 @@ const px = (r: number): number => Math.round(r * RADIUS_PX)
 /** The control panel: live FPS, the graphics level, a checkbox per layer, the auto-quality
  *  switch and the legend of the HUD. A column next to the picture, not an overlay; H hides it. */
 export function Panel() {
-  const { layers, autoQuality, quality, fps, ambient, music, sfx, liveWeather, weather, setLayer, setAutoQuality, setAmbient, setMusic, setSfx, setLiveWeather } = useSettings()
+  const { layers, autoQuality, quality, fps, ambient, music, sfx, liveWeather, weather, setLayer, setAutoQuality, setAmbient, setMusic, setSfx, setLiveWeather, togglePanel } = useSettings()
   const turn = Math.round((PLAYER_TURN_STEP * 180) / Math.PI)
   const graphics = GRAPHICS_NAMES[quality] + (quality && autoQuality ? ' (auto)' : '')
   const legend: Array<[string, string]> = [
@@ -25,6 +25,7 @@ export function Panel() {
   ]
   return (
     <aside className="panel">
+      <button type="button" className="panel-close" aria-label="Close the panel" onClick={togglePanel}>✕</button>
       <div className="panel-fps">{fps} FPS</div>
       <div className="panel-dim">Graphics: {graphics}</div>
 

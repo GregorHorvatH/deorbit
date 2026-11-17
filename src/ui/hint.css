@@ -1,0 +1,18 @@
+.hint {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  max-width: calc(100% - 32px);
+  padding: 6px 12px;
+  background: rgba(10, 16, 23, 0.82);
+  border: 1px solid #26323f;
+  font: 700 14px / 1.2 ui-monospace, Menlo, 'Courier New', monospace;
+  color: #ffd479;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  animation: hint-blink 0.8s steps(2) infinite;
+}
+@keyframes hint-blink { 50% { opacity: 0.45; } }

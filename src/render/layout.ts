@@ -15,17 +15,20 @@ export interface View {
   dy: number
 }
 
-const hudHeight = (k: number): number => Math.round(HUD_PLATE_HEIGHT * Math.min(k, 1)) // the HUD never grows
+export const hudHeight = (k: number): number => Math.round(HUD_PLATE_HEIGHT * Math.min(k, 1)) // the HUD never grows
 
-/** The scale and the shift for a w x h window. With the game on, the globe (with its glow) fits in the space below the
+/** The scale and the shift for a w x h window. `margin` is where the HUD plate starts (lower on a phone, under the row
+ *  of buttons); `bottomReserve` is the height at the bottom the touch pad covers. With the game on, the globe (with its glow) fits in the space below the
  *  HUD plate with GLOBE_GAP free on both sides, and is centred between the plate and the bottom edge; with the game off
  *  it is simply centred. */
-export function computeView(w: number, h: number, gameOn: boolean, plateHeight = hudHeight): View {
+export function computeView(
+  w: number, h: number, gameOn: boolean, plateHeight = hudHeight, margin = HUD_MARGIN, bottomReserve = 0,
+): View {
   let k = Math.min(w, h) / BASE_SIZE
   const outer = 1 + ATMO_WIDTH // globe + glow, Earth radii
   if (gameOn) {
     for (let i = 0; i < 2; i++) {
-      const room = h - HUD_MARGIN - plateHeight(k) - 2 * GLOBE_GAP
+      const room = h - margin - plateHeight(k) - 2 * GLOBE_GAP - bottomReserve
       k = Math.min(k, room / (2 * outer * RADIUS_PX))
     }
     k = Math.max(k, 0.2)
@@ -33,7 +36,7 @@ export function computeView(w: number, h: number, gameOn: boolean, plateHeight =
   if (Math.abs(k - 1) < 0.05) k = 1
   const zoom = k * RADIUS_PX
   if (!gameOn) return { zoom, dy: 0 }
-  const centre = (HUD_MARGIN + plateHeight(k)) / 2 // between the plate's bottom and the window's bottom edge
+  const centre = (margin + plateHeight(k) - bottomReserve) / 2 // between the plate's bottom and the window's bottom edge (or the touch pad's top)
   const lowest = h / 2 - outer * zoom - 2 // never so low that the glow is cut off
   return { zoom, dy: Math.round(Math.min(centre, lowest)) }
 }

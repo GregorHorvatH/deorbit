@@ -3,6 +3,10 @@
   top: 16px;
   left: 16px;
   z-index: 2;
+  box-sizing: border-box; /* min-height below is the whole plate (padding and border included), like the HUD's height */
+  display: flex; /* a panel stretched to the HUD's height keeps its rows in the middle, not pushed to the top */
+  flex-direction: column;
+  justify-content: center;
   min-width: 210px;
   padding: 8px 10px;
   background: rgba(10, 16, 23, 0.82);
@@ -12,7 +16,7 @@
   pointer-events: none;
   user-select: none;
 }
-.touch ~ .status { top: 60px; left: 8px; }
+.touch ~ .status { left: 8px; } /* its top comes from the measured row of buttons (see TouchControls) */
 .status-row { display: flex; align-items: center; gap: 8px; }
 .status-name { flex: 0 0 5ch; color: #8a99a8; }
 .status-hearts { font-size: 15px; letter-spacing: 2px; }

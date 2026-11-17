@@ -8,6 +8,8 @@ const AMBER = 'var(--amber)'
 const TEXT = 'var(--text)'
 const DIM = 'var(--dim)'
 
+export const TOUCH_SIDE = 8 // px: the side margin of the HUD (right) and of the status panel (left) on a phone
+
 const px = (r: number): number => Math.round(r * RADIUS_PX) // distances are shown in design pixels (a globe radius of 250)
 
 function bearingText(b: number): string {
@@ -18,6 +20,8 @@ function bearingText(b: number): string {
 export function Hud() {
   const h = useHud()
   const scale = useView((s) => s.hudScale)
+  const top = useView((s) => s.touchTop)
+  const statusHeight = useView((s) => s.statusHeight)
   const course = h.miss < CATCH_RADIUS ? GREEN : h.miss < 2 * CATCH_RADIUS ? AMBER : TEXT
   const alt = altColor(h.levelsOff)
   const cells = (label: string, labelColor: string, row: Array<[string, string]>): React.ReactNode => (
@@ -29,7 +33,11 @@ export function Hud() {
     </>
   )
   return (
-    <div className="hud" style={{ ['--s' as string]: scale }} aria-label="Instruments">
+    <div className="hud" style={{
+        ['--s' as string]: scale,
+        // phone: under the row of buttons, the same side margin as the status panel on the left, and as tall as that panel
+        ...(top === null ? {} : { top, right: TOUCH_SIDE, height: Math.max(Math.round(111 * scale), statusHeight) }),
+      }} aria-label="Instruments">
       <div className="hud-title">SCORE: {String(h.score).padStart(4, '0')}</div>
       <div className="hud-info">
         LVL {String(h.level).padStart(2, '0')}   SAT {String(h.sats).padStart(2, '0')}

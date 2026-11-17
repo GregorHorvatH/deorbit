@@ -26,6 +26,7 @@ import { realDeps, startWeather } from './state/weatherLoader'
 import { useSettings } from './state/settings'
 import { advance, world } from './state/world'
 import { AltLabels, AltLabelsDriver } from './ui/AltLabels'
+import { Hint } from './ui/Hint'
 import { Hud } from './ui/Hud'
 import { Panel } from './ui/Panel'
 import { Screens } from './ui/Screens'
@@ -130,6 +131,7 @@ export default function App() {
         {game && <Hud />}
         <TouchControls />
         {game && <Status />}
+        {game && <Hint />}
         <Screens />
       </div>
     </div>

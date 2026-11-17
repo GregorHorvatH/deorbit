@@ -12,15 +12,22 @@
   backdrop-filter: blur(2px);
 }
 .touch button:active { background: rgba(61, 220, 132, 0.4); color: #fff; }
-.touch-group {
+/* the four arrows as a cross in the bottom right corner: up on top, left and right on the middle row, down below */
+.touch-dpad {
+  --pad: clamp(52px, 17vw, 68px);
   position: absolute;
+  right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, var(--pad));
+  grid-template-rows: repeat(3, var(--pad));
+  gap: 6px;
 }
-.touch-turn { left: max(16px, env(safe-area-inset-left)); }
-.touch-alt { right: max(16px, env(safe-area-inset-right)); }
-.touch-btn { width: 76px; height: 76px; border-radius: 18px; }
+.touch-up { grid-area: 1 / 2; }
+.touch-left { grid-area: 2 / 1; }
+.touch-right { grid-area: 2 / 3; }
+.touch-down { grid-area: 3 / 2; }
+.touch-btn { width: 100%; height: 100%; border-radius: 16px; }
 .touch-top {
   position: absolute;
   top: max(8px, env(safe-area-inset-top));

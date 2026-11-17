@@ -28,3 +28,19 @@
 .panel .icon { width: 1.05em; height: 1.05em; vertical-align: -0.18em; margin-right: 3px; }
 .panel-note { margin: 2px 0 4px 23px; line-height: 1.3; }
 .panel a { color: #8fb8ff; }
+.panel-close {
+  float: right;
+  position: sticky;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #2c3a49;
+  background: #15202b;
+  color: #dbe4ee;
+  font: 700 18px/1 system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.panel-close:active { background: #26323f; }
